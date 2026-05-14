@@ -925,6 +925,69 @@
       .block::after  { left:-20px; width:20px; }
       nav .nav-links { display:none; }
       .hero-stats    { gap:24px; }
+      .projects-grid { grid-template-columns:1fr; }
+    }
+    @media (max-width: 540px) {
+      /* Hide cursor elements on touch devices */
+      .cursor-dot, .cursor-ring, .cursor-glow { display:none; }
+      body { cursor:auto; }
+      a, button, .chip, .tear-card, .repo-card, .c-link, .nav-links a { cursor:pointer; }
+
+      section { padding:72px 0; }
+      .container { padding:0 18px; }
+      .hero-content { padding:88px 18px 48px; }
+
+      /* Hero name — clamp tighter on small screens */
+      .hero-name { font-size:clamp(2.5rem,13vw,3.8rem); line-height:1.05; }
+
+      /* Typewriter role text — allow wrap, drop animation to prevent overflow */
+      .typewriter {
+        white-space: normal;
+        overflow: visible;
+        width: auto !important;
+        animation: blink .75s step-end infinite;
+      }
+      .hero-role { min-height:auto; font-size:.9rem; }
+
+      /* CTA buttons — smaller, wrap cleanly */
+      .hero-cta { gap:8px; }
+      .hero-cta .btn { font-size:.63rem; padding:10px 18px; letter-spacing:.1em; }
+
+      /* Stats */
+      .hero-stats { margin-top:36px; padding-top:24px; gap:18px; }
+      .stat-number { font-size:1.6rem; }
+
+      /* Section titles */
+      .section-title { font-size:clamp(1.4rem,6vw,2rem); margin-bottom:36px; }
+
+      /* Skills — 2 columns */
+      .skills-grid { grid-template-columns:1fr 1fr; }
+      .skill-cat   { padding:20px; }
+
+      /* GitHub stats — 2 columns */
+      .gh-profile { grid-template-columns:1fr 1fr; }
+      .gh-stat-block { padding:18px 10px; }
+      .gh-stat-n { font-size:1.3rem; }
+
+      /* Repo grid — single column */
+      .repo-grid { grid-template-columns:1fr; }
+
+      /* Tear cards — comfortable padding */
+      .tear-top, .tear-bottom { padding:22px 20px; }
+
+      /* Education card */
+      .edu-card { padding:32px 22px; }
+
+      /* Cipher panel */
+      .cipher-actions { flex-direction:column; }
+      .cipher-actions .btn { width:100%; text-align:center; }
+
+      /* Block timeline */
+      .block { padding:22px 18px; }
+      .block-hash { display:none; } /* too wide on tiny screens */
+
+      /* Holo card */
+      .holo-card { padding:26px 20px; }
     }
   </style>
 </head>
@@ -1371,7 +1434,7 @@
                       oninput="clearErr('f-msg','fg-msg','err-msg')"></textarea>
             <span class="field-error" id="err-msg"></span>
           </div>
-          <button type="submit" class="btn btn-cta" id="form-btn" style="border:none;cursor:none">ENCRYPT &amp; TRANSMIT →</button>
+          <button type="submit" class="btn btn-cta" id="form-btn" style="border:none;cursor:none">ENCRYPT</button>
         </form>
 
         <!-- Cipher panel — revealed after encryption -->
@@ -1590,37 +1653,34 @@ async function handleForm(e) {
     panel.classList.add('visible');
     panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
 
-    /* auto-copy */
+    /* auto-copy to clipboard */
     const statusEl = document.getElementById('cipher-status');
     try {
       await navigator.clipboard.writeText(_lastCipher);
-      statusEl.textContent = '✓ CIPHER COPIED TO CLIPBOARD · PASTE INTO EMAIL BODY TO raonik1003@gmail.com';
+      statusEl.textContent = '✓ CIPHER COPIED TO CLIPBOARD · CLICK "OPEN EMAIL →" TO SEND';
       statusEl.classList.add('ok');
     } catch {
-      statusEl.textContent = 'COPY CIPHER ABOVE · SEND TO raonik1003@gmail.com';
+      statusEl.textContent = 'COPY CIPHER ABOVE · CLICK "OPEN EMAIL →" OR PASTE MANUALLY TO raonik1003@gmail.com';
     }
 
-    /* attempt to open email client */
-    openEmail();
-
-    /* reset button */
+    /* reset button — show ENCRYPTED ✓ briefly then back to ENCRYPT */
     btn.style.cssText = 'border:none;cursor:none;background:#00f5d4;color:#020817;';
-    btn.textContent   = 'TRANSMITTED ✓';
+    btn.textContent   = 'ENCRYPTED ✓';
     btn.classList.add('btn-transmitting');
     btn.addEventListener('animationend', () => btn.classList.remove('btn-transmitting'), { once:true });
     e.target.reset();
     setTimeout(() => {
       btn.style.cssText = 'border:none;cursor:none;';
-      btn.textContent   = 'ENCRYPT & TRANSMIT →';
+      btn.textContent   = 'ENCRYPT';
       btn.disabled      = false;
-    }, 3000);
+    }, 2800);
 
   } catch(err) {
     btn.style.cssText = 'border:none;cursor:none;color:#f87171;';
     btn.textContent   = '⚠ ENCRYPTION_FAILED';
     setTimeout(() => {
       btn.style.cssText = 'border:none;cursor:none;';
-      btn.textContent   = 'ENCRYPT & TRANSMIT →';
+      btn.textContent   = 'ENCRYPT';
       btn.disabled      = false;
     }, 2000);
   }
@@ -1642,16 +1702,13 @@ function copyCipher() {
 }
 
 function openEmail() {
+  if (!_lastCipher) return;
   const sub  = encodeURIComponent('Encrypted Message · NR Portfolio');
   const body = encodeURIComponent(
-    'Hi Nikhil,\n\nHere is my encrypted message from your portfolio:\n\n' + _lastCipher +
-    '\n\n(Only you can decrypt this with your private key.)'
+    'Hi Nikhil,\n\nHere is my encrypted message from your portfolio:\n\n' + _lastCipher
   );
-  /* Gmail compose URL — works in any browser, no email client needed */
-  window.open(
-    `https://mail.google.com/mail/?view=cm&fs=1&to=raonik1003%40gmail.com&su=${sub}&body=${body}`,
-    '_blank'
-  );
+  /* mailto: opens native Mail/Gmail app on mobile, default client on desktop */
+  window.location.href = `mailto:raonik1003@gmail.com?subject=${sub}&body=${body}`;
 }
 
 /* ── GitHub live repos ── */
