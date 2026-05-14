@@ -1086,9 +1086,180 @@
       .cipher-channels { grid-template-columns: 1fr; }
     }
 
+    /* ═══════════════════════════════════════════════
+       WALLET CONNECT — MYSTERY SYMBOL + MODAL + THEME
+    ═══════════════════════════════════════════════ */
+
+    /* ── Keyframes ── */
+    @keyframes mystFloat {
+      0%,100% { transform: translateY(0px) rotate(-3deg); }
+      50%     { transform: translateY(-7px) rotate(3deg); }
+    }
+    @keyframes connectedPulse {
+      0%,100% { text-shadow: 0 0 10px currentColor, 0 0 22px currentColor; opacity:.65; }
+      50%     { text-shadow: 0 0 22px currentColor, 0 0 44px currentColor, 0 0 70px currentColor; opacity:.9; }
+    }
+    @keyframes chainOverlaySpin {
+      to { transform: translate(-50%,-50%) rotate(360deg); }
+    }
+    @keyframes chainThemeFade {
+      from { opacity:0; } to { opacity:1; }
+    }
+
+    /* ── Mystery floating symbol ── */
+    #mystery-symbol {
+      position: absolute; right: 8%; top: 45%; z-index: 3;
+      font-size: clamp(2.8rem,5vw,4.5rem);
+      font-family: 'Share Tech Mono', monospace;
+      color: var(--cyan); opacity: .2; line-height: 1;
+      cursor: none; user-select: none;
+      animation: mystFloat 4s ease-in-out infinite;
+      transition: opacity .4s, text-shadow .4s, color .4s;
+    }
+    #mystery-symbol:hover {
+      opacity: .72;
+      text-shadow: 0 0 18px currentColor, 0 0 36px currentColor;
+    }
+    #mystery-symbol.connected-eth { color: var(--purple); animation: connectedPulse 2.2s ease-in-out infinite; }
+    #mystery-symbol.connected-sol { color: var(--pink);   animation: connectedPulse 2.2s ease-in-out infinite; }
+    @media (max-width: 540px) { #mystery-symbol { display:none; } }
+
+    /* ── Chain overlay (giant faint background symbol) ── */
+    #chain-overlay {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      z-index: 1; pointer-events: none;
+      font-size: 65vw; line-height: 1;
+      font-family: 'Share Tech Mono', monospace;
+      user-select: none; display: none;
+    }
+    body.eth-connected #chain-overlay {
+      display: block; color: rgba(124,58,237,.032);
+      animation: chainThemeFade .8s ease forwards, chainOverlaySpin 120s linear infinite;
+    }
+    body.sol-connected #chain-overlay {
+      display: block; color: rgba(244,63,94,.032);
+      animation: chainThemeFade .8s ease forwards, chainOverlaySpin 120s linear infinite;
+    }
+
+    /* ── Chain theme overrides ── */
+    body.eth-connected { background: #06051a; }
+    body.sol-connected { background: #130812; }
+    body.eth-connected nav { border-bottom-color: rgba(124,58,237,.28); background: rgba(6,5,26,.86); }
+    body.sol-connected nav { border-bottom-color: rgba(244,63,94,.28);  background: rgba(19,8,18,.86); }
+    body.eth-connected .section-title {
+      background: linear-gradient(135deg,#fff 20%,var(--purple) 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    body.sol-connected .section-title {
+      background: linear-gradient(135deg,#fff 20%,#f43f5e 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    body.eth-connected .holo-card, body.sol-connected .holo-card { animation-duration: 4s; }
+
+    /* ── Wallet nav badge ── */
+    #wallet-badge {
+      display: none; align-items: center; gap: 7px;
+      font-family: 'Share Tech Mono', monospace; font-size: .6rem;
+      letter-spacing: .1em; padding: 5px 10px;
+      border: 1px solid var(--border); background: rgba(10,22,40,.7);
+      cursor: none; transition: border-color .3s;
+      max-width: 160px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    #wallet-badge.active { display: flex; }
+    #wallet-badge.eth-badge { border-color: rgba(124,58,237,.45); color: var(--purple); }
+    #wallet-badge.sol-badge { border-color: rgba(244,63,94,.45);  color: #f43f5e; }
+    #wallet-badge .badge-icon { font-size: .88rem; flex-shrink: 0; }
+    @media (max-width: 720px) { #wallet-badge { display: none !important; } }
+
+    /* ── Wallet modal ── */
+    #wallet-modal {
+      position: fixed; inset: 0; z-index: 10000;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(2,8,23,.88);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    #wallet-modal.open { display: flex; }
+    .wm-box {
+      position: relative; background: var(--bg2);
+      border: 1px solid var(--border); padding: 44px 40px 40px;
+      max-width: 520px; width: 92vw;
+      animation: fadeUp .28s ease both;
+    }
+    .wm-close {
+      position: absolute; top: 14px; right: 16px;
+      background: none; border: none; cursor: none;
+      color: var(--dim); font-size: 1.4rem; line-height: 1; padding: 4px 8px;
+      transition: color .2s;
+    }
+    .wm-close:hover { color: var(--text); }
+    .wm-title {
+      font-family: 'Orbitron', monospace; font-size: .78rem; font-weight: 700;
+      color: var(--cyan); letter-spacing: .25em; margin-bottom: 28px;
+    }
+    .wm-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    @media (max-width: 540px) { .wm-cards { grid-template-columns: 1fr; } .wm-box { padding: 36px 20px 28px; } }
+    .wm-card {
+      padding: 26px 20px; text-align: center;
+      border: 1px solid var(--border); background: rgba(10,22,40,.6);
+      cursor: none; transition: border-color .3s, box-shadow .3s, transform .25s;
+    }
+    .wm-card:hover { transform: translateY(-3px); }
+    .wm-card[disabled] { opacity: .5; pointer-events: none; }
+    .wm-card-eth:hover { border-color: var(--purple); box-shadow: 0 0 22px rgba(124,58,237,.35); }
+    .wm-card-sol:hover { border-color: #f43f5e;       box-shadow: 0 0 22px rgba(244,63,94,.35); }
+    .wm-card-icon { font-size: 2.6rem; display: block; margin-bottom: 10px; line-height: 1; }
+    .wm-card-name {
+      font-family: 'Orbitron', monospace; font-size: .7rem; font-weight: 700;
+      letter-spacing: .2em; margin-bottom: 6px;
+    }
+    .wm-card-eth .wm-card-name { color: var(--purple); }
+    .wm-card-sol .wm-card-name { color: #f43f5e; }
+    .wm-card-sub { font-family: 'Share Tech Mono', monospace; font-size: .6rem; color: var(--dim); letter-spacing: .1em; }
+    .wm-card-status {
+      font-family: 'Share Tech Mono', monospace; font-size: .62rem;
+      color: var(--cyan); margin-top: 10px; letter-spacing: .12em; min-height: 1.1em;
+    }
+    .wm-connected-panel { display: none; border: 1px solid var(--border); padding: 18px 20px; background: rgba(10,22,40,.8); }
+    .wm-connected-panel.visible { display: block; }
+    .wm-conn-label { font-family: 'Share Tech Mono', monospace; font-size: .6rem; color: var(--dim); letter-spacing: .18em; margin-bottom: 8px; }
+    .wm-conn-addr  { font-family: 'Share Tech Mono', monospace; font-size: .75rem; color: var(--cyan); word-break: break-all; margin-bottom: 14px; }
+    .wm-disconnect {
+      font-family: 'Orbitron', monospace; font-size: .6rem; font-weight: 700;
+      letter-spacing: .16em; padding: 9px 20px;
+      border: 1px solid rgba(248,113,113,.4); color: #f87171;
+      background: transparent; cursor: none; transition: background .2s;
+    }
+    .wm-disconnect:hover { background: rgba(248,113,113,.1); }
+
+    /* ── Resume button (gated) ── */
+    #resume-btn {
+      font-family: 'Orbitron', monospace; font-size: .72rem; font-weight: 700;
+      letter-spacing: .16em; padding: 14px 32px;
+      border: 1px solid var(--gold); color: var(--gold);
+      background: transparent; cursor: none;
+      position: relative; overflow: hidden;
+      transition: color .3s, opacity .3s, border-color .3s, box-shadow .3s;
+    }
+    #resume-btn::before {
+      content: ''; position: absolute; top: 0; left: -100%;
+      width: 100%; height: 100%; transition: left .3s; z-index: -1;
+    }
+    #resume-btn.locked  { opacity: .52; }
+    #resume-btn.unlocked { opacity: 1; }
+    #resume-btn.unlocked::before { background: rgba(0,245,212,.06); }
+    body.eth-connected #resume-btn.unlocked { border-color: var(--purple); color: var(--purple); }
+    body.sol-connected #resume-btn.unlocked { border-color: #f43f5e;       color: #f43f5e; }
+    #resume-btn:hover::before { left: 0; }
+
   </style>
 </head>
 <body>
+
+<!-- Chain overlay — faint Ξ or ◎ behind everything when wallet connected -->
+<div id="chain-overlay" aria-hidden="true"></div>
 
 <!-- Custom cursor elements -->
 <div class="cursor-glow" id="cursor-glow"></div>
@@ -1127,12 +1298,46 @@
       <li><a href="#education">EDUCATION</a></li>
       <li><a href="#contact">CONTACT</a></li>
     </ul>
+    <!-- Wallet badge — desktop only, shows connected address -->
+    <div id="wallet-badge" role="status">
+      <span class="badge-icon" id="badge-icon">Ξ</span>
+      <span id="badge-addr"></span>
+    </div>
     <!-- Hamburger — visible only on mobile -->
     <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
   </div>
 </nav>
+
+<!-- ── Wallet Selection Modal ── -->
+<div id="wallet-modal" role="dialog" aria-modal="true" aria-labelledby="wm-title-label">
+  <div class="wm-box">
+    <button class="wm-close" id="wm-close" aria-label="Close">×</button>
+    <div class="wm-title" id="wm-title-label">// SELECT CHAIN · CONNECT WALLET</div>
+
+    <div class="wm-cards">
+      <div class="wm-card wm-card-eth" id="wm-eth-card" role="button" tabindex="0" aria-label="Connect Ethereum wallet">
+        <span class="wm-card-icon">Ξ</span>
+        <div class="wm-card-name">ETHEREUM</div>
+        <div class="wm-card-sub">MetaMask / EVM Wallets</div>
+        <div class="wm-card-status" id="wm-eth-status"></div>
+      </div>
+      <div class="wm-card wm-card-sol" id="wm-sol-card" role="button" tabindex="0" aria-label="Connect Solana wallet">
+        <span class="wm-card-icon">◎</span>
+        <div class="wm-card-name">SOLANA</div>
+        <div class="wm-card-sub">Phantom Wallet</div>
+        <div class="wm-card-status" id="wm-sol-status"></div>
+      </div>
+    </div>
+
+    <div class="wm-connected-panel" id="wm-connected-panel">
+      <div class="wm-conn-label">// CONNECTED WALLET</div>
+      <div class="wm-conn-addr" id="wm-conn-addr"></div>
+      <button class="wm-disconnect" id="wm-disconnect-btn">DISCONNECT</button>
+    </div>
+  </div>
+</div>
 
 <!-- Mobile nav overlay -->
 <div class="mobile-nav-overlay" id="mobile-nav-overlay" role="dialog" aria-modal="true">
@@ -1149,6 +1354,8 @@
      HERO
 ═══════════════════════════════ -->
 <section id="hero">
+  <!-- Mystery floating symbol — click to open wallet modal -->
+  <div id="mystery-symbol" aria-hidden="true" role="presentation">?</div>
   <div class="hero-content">
     <div class="hero-badge">Associate Software Engineer</div>
 
@@ -1170,7 +1377,7 @@
     <div class="hero-cta">
       <a href="#experience" class="btn btn-cta">VIEW EXPERIENCE</a>
       <a href="#contact"    class="btn btn-ghost">GET IN TOUCH</a>
-      <a href="Resume_Nikhil_Rao.pdf" download="Nikhil_Rao_Resume.pdf" class="btn btn-ghost" style="border-color:var(--gold);color:var(--gold)">↓ RESUME</a>
+      <button id="resume-btn" class="locked">🔒 RESUME</button>
     </div>
 
     <div class="hero-stats">
@@ -2157,6 +2364,294 @@ function openEmail() {
   };
 
   /* _lastCipher is already on window (set at global scope above) */
+})();
+
+/* ══════════════════════════════════════════════════════
+   WALLET CONNECT — MYSTERY SYMBOL + MODAL + THEME
+   Private vars: _nr_addr, _nr_chain
+   Does NOT touch contacts-section wallet IIFE at all.
+══════════════════════════════════════════════════════ */
+(function WalletConnect() {
+
+  /* ── Constants ── */
+  const LS_KEY  = 'nr_wallet';
+  const SYMBOLS = ['?','✦','⬡','◈','Ξ','◎','∑','⧫','◇','⬟'];
+
+  /* ── State ── */
+  let _nr_addr  = null;
+  let _nr_chain = null;  /* 'eth' | 'sol' */
+  let _symIdx   = 0;
+  let _symTimer = null;
+
+  /* ── Element refs ── */
+  const mystEl      = document.getElementById('mystery-symbol');
+  const modal       = document.getElementById('wallet-modal');
+  const wmClose     = document.getElementById('wm-close');
+  const wmEthCard   = document.getElementById('wm-eth-card');
+  const wmSolCard   = document.getElementById('wm-sol-card');
+  const wmEthSt     = document.getElementById('wm-eth-status');
+  const wmSolSt     = document.getElementById('wm-sol-status');
+  const wmConnPanel = document.getElementById('wm-connected-panel');
+  const wmConnAddr  = document.getElementById('wm-conn-addr');
+  const wmDiscoBtn  = document.getElementById('wm-disconnect-btn');
+  const badge       = document.getElementById('wallet-badge');
+  const badgeIcon   = document.getElementById('badge-icon');
+  const badgeAddr   = document.getElementById('badge-addr');
+  const resumeBtn   = document.getElementById('resume-btn');
+  const chainOvEl   = document.getElementById('chain-overlay');
+
+  /* ── Symbol cycling ── */
+  function startSymbolCycle() {
+    if (_symTimer) return;
+    _symTimer = setInterval(() => {
+      _symIdx = (_symIdx + 1) % SYMBOLS.length;
+      if (mystEl && !_nr_chain) mystEl.textContent = SYMBOLS[_symIdx];
+    }, 2500);
+  }
+  function stopSymbolCycle() { clearInterval(_symTimer); _symTimer = null; }
+
+  /* ── Apply chain theme ── */
+  function applyTheme(chain) {
+    document.body.classList.remove('eth-connected', 'sol-connected');
+    const root = document.documentElement;
+    if (!chain) {
+      root.style.removeProperty('--border');
+      root.style.removeProperty('--glow');
+      return;
+    }
+    if (chain === 'eth') {
+      document.body.classList.add('eth-connected');
+      root.style.setProperty('--border', 'rgba(124,58,237,0.22)');
+      root.style.setProperty('--glow',   '0 0 20px rgba(124,58,237,0.5)');
+      if (chainOvEl) chainOvEl.textContent = 'Ξ';
+    } else {
+      document.body.classList.add('sol-connected');
+      root.style.setProperty('--border', 'rgba(244,63,94,0.22)');
+      root.style.setProperty('--glow',   '0 0 20px rgba(244,63,94,0.5)');
+      if (chainOvEl) chainOvEl.textContent = '◎';
+    }
+  }
+
+  /* ── Update all UI ── */
+  function updateUI() {
+    const connected = !!(   _nr_addr && _nr_chain);
+
+    /* Mystery symbol */
+    if (mystEl) {
+      mystEl.classList.remove('connected-eth', 'connected-sol');
+      if (connected) {
+        stopSymbolCycle();
+        mystEl.textContent = _nr_chain === 'eth' ? 'Ξ' : '◎';
+        mystEl.classList.add(_nr_chain === 'eth' ? 'connected-eth' : 'connected-sol');
+      } else {
+        mystEl.textContent = SYMBOLS[_symIdx];
+        startSymbolCycle();
+      }
+    }
+
+    /* Resume button */
+    if (resumeBtn) {
+      if (connected) {
+        resumeBtn.classList.remove('locked');
+        resumeBtn.classList.add('unlocked');
+        resumeBtn.textContent = '✦ MINT & DOWNLOAD';
+      } else {
+        resumeBtn.classList.remove('unlocked');
+        resumeBtn.classList.add('locked');
+        resumeBtn.textContent = '🔒 RESUME';
+      }
+    }
+
+    /* Nav badge */
+    if (badge) {
+      if (connected) {
+        const s = _nr_addr;
+        const short = s.length > 12 ? s.slice(0,6) + '...' + s.slice(-4) : s.slice(0,8) + '...';
+        badge.className = 'active ' + (_nr_chain === 'eth' ? 'eth-badge' : 'sol-badge');
+        if (badgeIcon) badgeIcon.textContent = _nr_chain === 'eth' ? 'Ξ' : '◎';
+        if (badgeAddr) badgeAddr.textContent  = short;
+      } else {
+        badge.className = '';
+      }
+    }
+
+    /* Apply / remove theme */
+    applyTheme(connected ? _nr_chain : null);
+
+    /* Modal connected panel */
+    if (connected && wmConnPanel && wmConnAddr) {
+      wmConnPanel.classList.add('visible');
+      wmConnAddr.textContent = _nr_addr;
+      if (wmEthCard) wmEthCard.style.display = 'none';
+      if (wmSolCard) wmSolCard.style.display = 'none';
+    } else {
+      if (wmConnPanel) wmConnPanel.classList.remove('visible');
+      if (wmEthCard) wmEthCard.style.display = '';
+      if (wmSolCard) wmSolCard.style.display = '';
+      if (wmEthSt) wmEthSt.textContent = '';
+      if (wmSolSt) wmSolSt.textContent = '';
+    }
+  }
+
+  /* ── Persist / restore ── */
+  function persist() {
+    if (_nr_addr && _nr_chain)
+      localStorage.setItem(LS_KEY, JSON.stringify({ chain: _nr_chain, address: _nr_addr }));
+    else
+      localStorage.removeItem(LS_KEY);
+  }
+  function restore() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      const { chain, address } = JSON.parse(raw);
+      if (chain && address) { _nr_chain = chain; _nr_addr = address; updateUI(); }
+    } catch { /* ignore */ }
+  }
+
+  /* ── Modal open/close ── */
+  function openModal() {
+    if (!modal) return;
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    if (!modal) return;
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  /* ── Connect ETH ── */
+  async function connectEth() {
+    if (!window.ethereum) {
+      if (wmEthSt) wmEthSt.textContent = '⚠ NO ETH WALLET DETECTED';
+      return;
+    }
+    if (wmEthSt) wmEthSt.textContent = 'CONNECTING...';
+    if (wmEthCard) wmEthCard.setAttribute('disabled', 'true');
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      if (!accounts?.[0]) throw new Error('No accounts');
+      _nr_addr = accounts[0]; _nr_chain = 'eth';
+      persist(); updateUI(); closeModal();
+    } catch (err) {
+      if (wmEthSt) wmEthSt.textContent = err.code === 4001 ? 'REJECTED' : '⚠ FAILED';
+      if (wmEthCard) wmEthCard.removeAttribute('disabled');
+    }
+  }
+
+  /* ── Connect SOL (Phantom) ── */
+  async function connectSol() {
+    if (!window.solana?.isPhantom) {
+      if (wmSolSt) wmSolSt.textContent = '⚠ PHANTOM NOT FOUND';
+      return;
+    }
+    if (wmSolSt) wmSolSt.textContent = 'CONNECTING...';
+    if (wmSolCard) wmSolCard.setAttribute('disabled', 'true');
+    try {
+      const resp = await window.solana.connect();
+      const addr = resp.publicKey?.toString?.() ?? String(resp.publicKey);
+      _nr_addr = addr; _nr_chain = 'sol';
+      persist(); updateUI(); closeModal();
+    } catch (err) {
+      if (wmSolSt) wmSolSt.textContent = err.code === 4001 ? 'REJECTED' : '⚠ FAILED';
+      if (wmSolCard) wmSolCard.removeAttribute('disabled');
+    }
+  }
+
+  /* ── Disconnect ── */
+  function disconnect() {
+    _nr_addr = null; _nr_chain = null;
+    persist(); updateUI(); closeModal();
+  }
+
+  /* ── Mint & download PDF ── */
+  async function mintAndDownload() {
+    if (!_nr_addr || !_nr_chain) return;
+    if (resumeBtn) { resumeBtn.textContent = '⏳ MINTING...'; resumeBtn.disabled = true; }
+    try {
+      const res   = await fetch('Resume_Nikhil_Rao.pdf');
+      if (!res.ok) throw new Error('fetch failed');
+      const buf   = await res.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+
+      /* Unique SHA-256 token: address + timestamp */
+      const raw    = new TextEncoder().encode(_nr_addr + Date.now());
+      const digest = await crypto.subtle.digest('SHA-256', raw);
+      const token  = Array.from(new Uint8Array(digest))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+
+      /* Append signature block after PDF %%EOF — invisible to viewers */
+      const sig = `\n%%NFT-SIGNATURE\n%%WALLET:${_nr_addr}\n%%CHAIN:${_nr_chain.toUpperCase()}\n%%TOKEN:${token}\n%%ISSUED:${new Date().toISOString()}\n%%END-SIGNATURE\n`;
+      const sigBytes = new TextEncoder().encode(sig);
+      const merged   = new Uint8Array(bytes.length + sigBytes.length);
+      merged.set(bytes);
+      merged.set(sigBytes, bytes.length);
+
+      const blob = new Blob([merged], { type: 'application/pdf' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url;
+      a.download = `Nikhil_Rao_Resume_${token.slice(0, 8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      if (resumeBtn) {
+        resumeBtn.textContent = '✓ MINTED';
+        setTimeout(() => { resumeBtn.textContent = '✦ MINT & DOWNLOAD'; resumeBtn.disabled = false; }, 2500);
+      }
+    } catch {
+      if (resumeBtn) {
+        resumeBtn.textContent = '⚠ FAILED';
+        setTimeout(() => { resumeBtn.textContent = '✦ MINT & DOWNLOAD'; resumeBtn.disabled = false; }, 2000);
+      }
+    }
+  }
+
+  /* ── Event listeners (registered once at IIFE init) ── */
+  if (mystEl) {
+    mystEl.addEventListener('click', openModal);
+    mystEl.addEventListener('mouseenter', () => document.getElementById('cursor-ring')?.classList.add('expanded'));
+    mystEl.addEventListener('mouseleave', () => document.getElementById('cursor-ring')?.classList.remove('expanded'));
+  }
+  if (wmClose)    wmClose.addEventListener('click', closeModal);
+  if (modal)      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  if (wmEthCard)  wmEthCard.addEventListener('click', () => { if (!_nr_addr) connectEth(); });
+  if (wmSolCard)  wmSolCard.addEventListener('click', () => { if (!_nr_addr) connectSol(); });
+  if (wmEthCard)  wmEthCard.addEventListener('keydown', e => { if ((e.key==='Enter'||e.key===' ') && !_nr_addr) connectEth(); });
+  if (wmSolCard)  wmSolCard.addEventListener('keydown', e => { if ((e.key==='Enter'||e.key===' ') && !_nr_addr) connectSol(); });
+  if (wmDiscoBtn) wmDiscoBtn.addEventListener('click', disconnect);
+  if (resumeBtn)  resumeBtn.addEventListener('click', () => _nr_addr ? mintAndDownload() : openModal());
+  if (badge)      badge.addEventListener('click', openModal);
+
+  /* Escape key closes modal */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal?.classList.contains('open')) closeModal();
+  });
+
+  /* Wallet provider events — registered once, guarded */
+  if (window.ethereum) {
+    window.ethereum.on('accountsChanged', accs => {
+      if (_nr_chain !== 'eth') return;
+      if (!accs?.[0]) { _nr_addr = null; _nr_chain = null; }
+      else { _nr_addr = accs[0]; }
+      persist(); updateUI();
+    });
+  }
+  if (window.solana) {
+    window.solana.on('disconnect', () => {
+      if (_nr_chain !== 'sol') return;
+      _nr_addr = null; _nr_chain = null;
+      persist(); updateUI();
+    });
+  }
+
+  /* ── Init ── */
+  startSymbolCycle();
+  restore();   /* restore theme + address from localStorage before first paint */
+
 })();
 </script>
 </body>
