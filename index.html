@@ -2519,8 +2519,8 @@ function openEmail() {
       if (wmSolCard) wmSolCard.style.display = 'none';
     } else {
       if (wmConnPanel) wmConnPanel.classList.remove('visible');
-      if (wmEthCard) wmEthCard.style.display = '';
-      if (wmSolCard) wmSolCard.style.display = '';
+      if (wmEthCard) { wmEthCard.style.display = ''; wmEthCard.removeAttribute('disabled'); }
+      if (wmSolCard) { wmSolCard.style.display = ''; wmSolCard.removeAttribute('disabled'); }
       if (wmEthSt) wmEthSt.textContent = '';
       if (wmSolSt) wmSolSt.textContent = '';
     }
