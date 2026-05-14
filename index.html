@@ -791,6 +791,61 @@
     }
     .shake { animation: shake .48s ease; }
 
+    /* ─── Encrypted Channel ─── */
+    .enc-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      font-family:'Share Tech Mono',monospace; font-size:.63rem;
+      color:var(--cyan); letter-spacing:.14em;
+      padding:7px 12px; margin-bottom:18px;
+      border:1px solid rgba(0,245,212,.22);
+      background:rgba(0,245,212,.04);
+    }
+    .enc-dot { width:6px; height:6px; border-radius:50%; background:var(--cyan); animation:pulse 1.5s ease-in-out infinite; }
+
+    .cipher-panel {
+      display:none; margin-top:18px;
+      background:rgba(0,0,0,.55);
+      border:1px solid rgba(0,245,212,.3);
+      padding:22px; position:relative; overflow:hidden;
+    }
+    .cipher-panel.visible { display:block; }
+    .cipher-panel::before {
+      content:'ENCRYPTED PAYLOAD';
+      position:absolute; top:8px; right:12px;
+      font-family:'Share Tech Mono',monospace; font-size:.55rem;
+      color:rgba(0,245,212,.25); letter-spacing:.2em;
+    }
+    .cipher-head {
+      font-family:'Orbitron',monospace; font-size:.72rem; font-weight:700;
+      color:var(--cyan); margin-bottom:4px;
+    }
+    .cipher-proto {
+      font-family:'Share Tech Mono',monospace; font-size:.6rem;
+      color:var(--purple); letter-spacing:.12em; margin-bottom:14px;
+    }
+    .cipher-text {
+      font-family:'Share Tech Mono',monospace; font-size:.6rem;
+      color:rgba(0,245,212,.5); word-break:break-all; line-height:1.75;
+      max-height:110px; overflow-y:auto;
+      border:1px solid rgba(0,245,212,.1); padding:10px;
+      background:rgba(0,245,212,.02); margin-bottom:14px;
+      scrollbar-width:thin; scrollbar-color:rgba(0,245,212,.3) transparent;
+    }
+    .cipher-actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+    .cipher-status {
+      font-family:'Share Tech Mono',monospace; font-size:.63rem;
+      color:var(--dim); letter-spacing:.1em; line-height:1.6;
+    }
+    .cipher-status.ok { color:var(--cyan); }
+
+    @keyframes glitch-form {
+      0%,100%{ filter:none; }
+      25%    { filter:hue-rotate(80deg) saturate(2); transform:translateX(-2px); }
+      50%    { filter:hue-rotate(-60deg) saturate(1.5); transform:translateX(2px); }
+      75%    { filter:hue-rotate(40deg); transform:translateX(-1px); }
+    }
+    .contact-form.scrambling { animation:glitch-form .55s ease; }
+
     /* ─── Custom Cursor ─── */
     body { cursor: none; }
     a, button, .chip, .skill-tag, .tear-card, .repo-card, .c-link, .nav-links a { cursor: none; }
@@ -1220,7 +1275,7 @@
     <div id="lang-bar-wrap" class="lang-bar-wrap"></div>
 
     <!-- Live repo cards — populated by JS -->
-    <p class="section-label" style="margin-bottom:24px">// LIVE REPOSITORIES</p>
+    <p class="section-label" style="margin-bottom:24px">// PINNED REPOSITORIES</p>
     <div class="repo-grid" id="repo-grid">
       <div class="repo-skeleton"><div class="skel-line" style="height:12px;width:60%"></div><div class="skel-line" style="height:10px;width:90%"></div><div class="skel-line" style="height:10px;width:75%"></div></div>
       <div class="repo-skeleton"><div class="skel-line" style="height:12px;width:55%"></div><div class="skel-line" style="height:10px;width:85%"></div><div class="skel-line" style="height:10px;width:70%"></div></div>
@@ -1263,8 +1318,8 @@
 ═══════════════════════════════ -->
 <section id="contact">
   <div class="container">
-    <p class="section-label">// OPEN CHANNEL</p>
-    <h2 class="section-title">CONTACT.INIT</h2>
+    <p class="section-label">// ZERO-KNOWLEDGE CHANNEL</p>
+    <h2 class="section-title">ENCRYPT.TRANSMIT</h2>
 
     <div class="contact-grid">
 
@@ -1290,29 +1345,50 @@
       </div>
 
       <div class="anim-right">
+        <div class="enc-badge">
+          <span class="enc-dot"></span>
+          RSA-OAEP-2048 &nbsp;·&nbsp; AES-256-GCM &nbsp;·&nbsp; END-TO-END ENCRYPTED
+        </div>
+
         <form class="contact-form" id="contact-form" onsubmit="handleForm(event)" novalidate>
           <div class="form-group" id="fg-name">
-            <label class="form-label" for="f-name">// NAME</label>
+            <label class="form-label" for="f-name">// SENDER ID</label>
             <input id="f-name" type="text" class="fi" placeholder="YOUR_NAME"
                    autocomplete="name" maxlength="80"
                    oninput="clearErr('f-name','fg-name','err-name')" />
             <span class="field-error" id="err-name"></span>
           </div>
           <div class="form-group" id="fg-email">
-            <label class="form-label" for="f-email">// EMAIL</label>
+            <label class="form-label" for="f-email">// REPLY VECTOR</label>
             <input id="f-email" type="email" class="fi" placeholder="YOUR@EMAIL.COM"
                    autocomplete="email" maxlength="120"
                    oninput="clearErr('f-email','fg-email','err-email')" />
             <span class="field-error" id="err-email"></span>
           </div>
           <div class="form-group" id="fg-msg">
-            <label class="form-label" for="f-msg">// MESSAGE</label>
-            <textarea id="f-msg" class="ft" placeholder="YOUR_MESSAGE..." maxlength="2000"
+            <label class="form-label" for="f-msg">// PLAINTEXT MESSAGE</label>
+            <textarea id="f-msg" class="ft" placeholder="ENTER PLAINTEXT..." maxlength="2000"
                       oninput="clearErr('f-msg','fg-msg','err-msg')"></textarea>
             <span class="field-error" id="err-msg"></span>
           </div>
-          <button type="submit" class="btn btn-cta" id="form-btn" style="border:none;cursor:pointer">TRANSMIT →</button>
+          <button type="submit" class="btn btn-cta" id="form-btn" style="border:none;cursor:none">ENCRYPT &amp; TRANSMIT →</button>
         </form>
+
+        <!-- Cipher panel — revealed after encryption -->
+        <div class="cipher-panel" id="cipher-panel">
+          <div class="cipher-head">✓ CIPHER GENERATED</div>
+          <div class="cipher-proto">RSA-OAEP-2048 + AES-256-GCM · ZERO-KNOWLEDGE</div>
+          <div class="cipher-text" id="cipher-text"></div>
+          <div class="cipher-actions">
+            <button class="btn btn-cta" id="copy-btn" onclick="copyCipher()"
+                    style="border:none;cursor:none;font-size:.62rem;padding:8px 18px">COPY CIPHER</button>
+            <button class="btn btn-ghost" onclick="openEmail()"
+                    style="border:none;cursor:none;font-size:.62rem;padding:8px 18px">OPEN EMAIL →</button>
+          </div>
+          <p class="cipher-status" id="cipher-status">
+            PASTE CIPHER IN EMAIL BODY · SEND TO raonik1003@gmail.com
+          </p>
+        </div>
       </div>
 
     </div>
@@ -1412,81 +1488,165 @@ window.addEventListener('load', () => {
   sections.forEach(s => io.observe(s));
 })();
 
-/* ── Contact form validation ── */
-const EMAIL_RE = /^[^\s@]+@[^\s@]{2,}\.[^\s@]{2,}$/;
+/* ══════════════════════════════════════════════════════
+   ENCRYPTED CONTACT CHANNEL
+   RSA-OAEP-2048 (key wrap) + AES-256-GCM (payload)
+   Public key is safe to ship in source — private key
+   never leaves Nikhil's machine.
+══════════════════════════════════════════════════════ */
+const _PUB = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoDvz3svGKQUkOGJXjxc5rpEJ5s4vyzTlmhiSmXni4714AGDgmBA0Trl1QFHYhEjTBcKbxM5tIDewOCTPFOJXnKEZxVB11kr8nO+w/82RN3H6x+A9JfSqFSij27Z6khOAxOO9GO9b8IC9KQw4aEbPwMqDzieH2a8QLtmkVeIZAERkTpqp6i9CW+eqHRaDxjzr08M8jUmYtsgmJEbguZRcBQbiKfLMcbnORtXMuVyQIoqoI6tnqDKJUxaJojI9TVbhfwO6vMTupxrM2nBKMGQ//hX6q5+SG1h+LYza9XpXDdC1AcOi7zE75vUtgoY1fwi4abys+uF/lhFAWThKRciN/QIDAQAB';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]{2,}\.[^\s@]{2,}$/;
+let _lastCipher = '';
+
+/* ── validation helpers ── */
 function setErr(inputId, groupId, errId, msg) {
   document.getElementById(inputId).classList.add('error');
   document.getElementById(groupId).classList.add('has-error');
   const el = document.getElementById(errId);
-  el.textContent = '⚠ ' + msg;
-  el.classList.add('visible');
+  el.textContent = '⚠ ' + msg; el.classList.add('visible');
 }
-
 function clearErr(inputId, groupId, errId) {
   document.getElementById(inputId).classList.remove('error');
   document.getElementById(groupId).classList.remove('has-error');
   const el = document.getElementById(errId);
-  el.textContent = '';
-  el.classList.remove('visible');
+  el.textContent = ''; el.classList.remove('visible');
 }
-
 function validate() {
   let ok = true;
   const name  = document.getElementById('f-name').value.trim();
   const email = document.getElementById('f-email').value.trim();
   const msg   = document.getElementById('f-msg').value.trim();
-
-  if (!name) {
-    setErr('f-name','fg-name','err-name', 'NAME_REQUIRED');
-    ok = false;
-  } else if (name.length < 2) {
-    setErr('f-name','fg-name','err-name', 'NAME_TOO_SHORT · MIN 2 CHARS');
-    ok = false;
-  }
-
-  if (!email) {
-    setErr('f-email','fg-email','err-email', 'EMAIL_REQUIRED');
-    ok = false;
-  } else if (!EMAIL_RE.test(email)) {
-    setErr('f-email','fg-email','err-email', 'INVALID_EMAIL_FORMAT');
-    ok = false;
-  }
-
-  if (!msg) {
-    setErr('f-msg','fg-msg','err-msg', 'MESSAGE_REQUIRED');
-    ok = false;
-  } else if (msg.length < 10) {
-    setErr('f-msg','fg-msg','err-msg', 'MESSAGE_TOO_SHORT · MIN 10 CHARS');
-    ok = false;
-  }
-
+  if (!name || name.length < 2)
+    { setErr('f-name','fg-name','err-name', name ? 'SENDER_ID_TOO_SHORT' : 'SENDER_ID_REQUIRED'); ok=false; }
+  if (!email)
+    { setErr('f-email','fg-email','err-email','REPLY_VECTOR_REQUIRED'); ok=false; }
+  else if (!EMAIL_RE.test(email))
+    { setErr('f-email','fg-email','err-email','INVALID_REPLY_VECTOR_FORMAT'); ok=false; }
+  if (!msg || msg.length < 10)
+    { setErr('f-msg','fg-msg','err-msg', msg ? 'PLAINTEXT_TOO_SHORT · MIN 10 CHARS' : 'PLAINTEXT_REQUIRED'); ok=false; }
   return ok;
 }
 
-function handleForm(e) {
+/* ── crypto helpers ── */
+function _b64url(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+async function _importPub() {
+  const der = Uint8Array.from(atob(_PUB), c => c.charCodeAt(0));
+  return crypto.subtle.importKey(
+    'spki', der.buffer, { name:'RSA-OAEP', hash:'SHA-256' }, false, ['encrypt']
+  );
+}
+async function _encrypt(plaintext) {
+  /* 1 — random AES-256-GCM session key */
+  const aesKey = await crypto.subtle.generateKey({ name:'AES-GCM', length:256 }, true, ['encrypt']);
+  const iv     = crypto.getRandomValues(new Uint8Array(12));
+  /* 2 — encrypt plaintext */
+  const ct     = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, aesKey, new TextEncoder().encode(plaintext));
+  /* 3 — wrap session key with RSA public key */
+  const raw    = await crypto.subtle.exportKey('raw', aesKey);
+  const pub    = await _importPub();
+  const wk     = await crypto.subtle.encrypt({ name:'RSA-OAEP' }, pub, raw);
+  /* 4 — format: version:wrappedKey.iv.ciphertext (all base64url) */
+  return `NR1:${_b64url(wk)}.${_b64url(iv)}.${_b64url(ct)}`;
+}
+
+/* ── form handler ── */
+async function handleForm(e) {
   e.preventDefault();
   if (!validate()) {
     const form = document.getElementById('contact-form');
     form.classList.add('shake');
-    form.addEventListener('animationend', () => form.classList.remove('shake'), { once: true });
+    form.addEventListener('animationend', () => form.classList.remove('shake'), { once:true });
     return;
   }
 
-  const btn  = document.getElementById('form-btn');
-  btn.disabled = true;
-  btn.textContent = 'TRANSMITTED ✓';
-  /* Use hex values — CSS custom properties don't resolve in JS inline styles */
-  btn.style.cssText = 'border:none;cursor:none;background:#00f5d4;color:#020817;';
-  btn.classList.add('btn-transmitting');
-  btn.addEventListener('animationend', () => btn.classList.remove('btn-transmitting'), { once: true });
+  const btn   = document.getElementById('form-btn');
+  const panel = document.getElementById('cipher-panel');
+  const name  = document.getElementById('f-name').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const msg   = document.getElementById('f-msg').value.trim();
 
-  setTimeout(() => {
-    btn.style.cssText = 'border:none;cursor:none;';
-    btn.textContent = 'TRANSMIT →';
-    btn.disabled = false;
+  /* encrypting state */
+  btn.disabled = true;
+  btn.textContent = 'ENCRYPTING...';
+  btn.style.cssText = 'border:none;cursor:none;color:#7c3aed;letter-spacing:.2em;';
+
+  /* glitch the form visually while encrypting */
+  document.getElementById('contact-form').classList.add('scrambling');
+  document.getElementById('contact-form').addEventListener('animationend',
+    () => document.getElementById('contact-form').classList.remove('scrambling'), { once:true });
+
+  await new Promise(r => setTimeout(r, 620));   /* let animation play */
+
+  try {
+    const payload = JSON.stringify({ sender:name, reply:email, msg, ts:new Date().toISOString() });
+    _lastCipher   = await _encrypt(payload);
+
+    /* show cipher panel */
+    document.getElementById('cipher-text').textContent = _lastCipher;
+    panel.classList.add('visible');
+    panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+
+    /* auto-copy */
+    const statusEl = document.getElementById('cipher-status');
+    try {
+      await navigator.clipboard.writeText(_lastCipher);
+      statusEl.textContent = '✓ CIPHER COPIED TO CLIPBOARD · PASTE INTO EMAIL BODY TO raonik1003@gmail.com';
+      statusEl.classList.add('ok');
+    } catch {
+      statusEl.textContent = 'COPY CIPHER ABOVE · SEND TO raonik1003@gmail.com';
+    }
+
+    /* attempt to open email client */
+    openEmail();
+
+    /* reset button */
+    btn.style.cssText = 'border:none;cursor:none;background:#00f5d4;color:#020817;';
+    btn.textContent   = 'TRANSMITTED ✓';
+    btn.classList.add('btn-transmitting');
+    btn.addEventListener('animationend', () => btn.classList.remove('btn-transmitting'), { once:true });
     e.target.reset();
-  }, 3200);
+    setTimeout(() => {
+      btn.style.cssText = 'border:none;cursor:none;';
+      btn.textContent   = 'ENCRYPT & TRANSMIT →';
+      btn.disabled      = false;
+    }, 3000);
+
+  } catch(err) {
+    btn.style.cssText = 'border:none;cursor:none;color:#f87171;';
+    btn.textContent   = '⚠ ENCRYPTION_FAILED';
+    setTimeout(() => {
+      btn.style.cssText = 'border:none;cursor:none;';
+      btn.textContent   = 'ENCRYPT & TRANSMIT →';
+      btn.disabled      = false;
+    }, 2000);
+  }
+}
+
+function copyCipher() {
+  if (!_lastCipher) return;
+  const btn = document.getElementById('copy-btn');
+  navigator.clipboard.writeText(_lastCipher).then(() => {
+    btn.textContent = 'COPIED ✓';
+    setTimeout(() => { btn.textContent = 'COPY CIPHER'; }, 2000);
+  }).catch(() => {
+    /* fallback: select the cipher text element */
+    const range = document.createRange();
+    range.selectNode(document.getElementById('cipher-text'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+function openEmail() {
+  const sub  = encodeURIComponent('Encrypted Message · NR Portfolio');
+  const body = encodeURIComponent(
+    'Paste your encrypted payload below and send — only Nikhil can decrypt it.\n\n' + _lastCipher
+  );
+  window.open(`mailto:raonik1003@gmail.com?subject=${sub}&body=${body}`, '_blank');
 }
 
 /* ── GitHub live repos ── */
@@ -1586,9 +1746,14 @@ function handleForm(e) {
           </div>`;
       }
 
-      /* Repo cards — 6 most recently pushed */
-      repos.sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
-      repoGrid.innerHTML = repos.slice(0, 6).map(repoCard).join('');
+      /* Pinned repos — show specific repos in defined order */
+      const PINNED = ['myrmex','AI-Expense-Analyzer','DefiApp','NFT-MarketPlace','TSender','NIO'];
+      const pinned  = PINNED.map(n => repos.find(r => r.name === n)).filter(Boolean);
+      /* Backfill with most-recent if any pinned repo is missing */
+      const backfill = repos
+        .filter(r => !PINNED.includes(r.name))
+        .sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
+      repoGrid.innerHTML = [...pinned, ...backfill].slice(0, 6).map(repoCard).join('');
 
     } catch {
       profileEl.innerHTML = '<p class="gh-error" style="grid-column:1/-1">⚠ FAILED_TO_FETCH_PROFILE · CHECK_NETWORK</p>';

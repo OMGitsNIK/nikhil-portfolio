@@ -1,1 +1,3 @@
 .vercel
+# Local-only decryption tool — contains private key, never commit
+decrypt.html
