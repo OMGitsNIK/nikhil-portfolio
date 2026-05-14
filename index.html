@@ -1122,7 +1122,23 @@
     }
     #mystery-symbol.connected-eth { color: var(--purple); animation: connectedPulse 2.2s ease-in-out infinite; }
     #mystery-symbol.connected-sol { color: #14f195; animation: connectedPulse 2.2s ease-in-out infinite; }
-    @media (max-width: 540px) { #mystery-symbol { display:none; } }
+    /* On mobile: fixed FAB in bottom-right so it never overlaps hero text */
+    @media (max-width: 540px) {
+      #mystery-symbol {
+        position: fixed;
+        right: 18px; bottom: 88px;
+        top: auto; left: auto;
+        font-size: 1.5rem;
+        opacity: 0.45;
+        z-index: 100;
+        padding: 10px 12px;
+        background: rgba(2,8,23,0.72);
+        border: 1px solid rgba(0,245,212,0.28);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        animation: mystFloat 4s ease-in-out infinite;
+      }
+    }
 
     /* ── Chain overlay — inline SVG shapes, always in DOM, opacity-driven ── */
     #chain-overlay {
