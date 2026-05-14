@@ -791,6 +791,61 @@
     }
     .shake { animation: shake .48s ease; }
 
+    /* ─── Custom Cursor ─── */
+    body { cursor: none; }
+    a, button, .chip, .skill-tag, .tear-card, .repo-card, .c-link, .nav-links a { cursor: none; }
+
+    .cursor-dot {
+      width: 6px; height: 6px;
+      background: #00f5d4;
+      border-radius: 50%;
+      position: fixed; z-index: 99999;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 8px #00f5d4;
+      transition: opacity .3s;
+      will-change: left, top;
+    }
+    .cursor-ring {
+      width: 30px; height: 30px;
+      border: 1px solid rgba(0,245,212,.55);
+      border-radius: 50%;
+      position: fixed; z-index: 99998;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: width .25s, height .25s, border-color .25s, opacity .3s;
+      will-change: left, top;
+    }
+    .cursor-ring.expanded {
+      width: 52px; height: 52px;
+      border-color: #00f5d4;
+      background: rgba(0,245,212,.04);
+    }
+    /* Subtle cursor glow that bleeds into background */
+    .cursor-glow {
+      width: 480px; height: 480px;
+      border-radius: 50%;
+      position: fixed; z-index: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(0,245,212,.045) 0%, transparent 68%);
+      will-change: left, top;
+    }
+
+    /* ─── Transmit button animation ─── */
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 0 0 0   rgba(0,245,212,.6); }
+      70%  { box-shadow: 0 0 0 18px rgba(0,245,212,0); }
+      100% { box-shadow: 0 0 0 0   rgba(0,245,212,0); }
+    }
+    @keyframes btn-success-glow {
+      0%,100% { filter: brightness(1); }
+      40%     { filter: brightness(1.5) drop-shadow(0 0 12px #00f5d4); }
+    }
+    .btn-transmitting {
+      animation: pulse-ring .7s ease-out, btn-success-glow .7s ease-out;
+    }
+
     /* ─── Footer ─── */
     footer {
       position:relative; z-index:1;
@@ -819,6 +874,11 @@
   </style>
 </head>
 <body>
+
+<!-- Custom cursor elements -->
+<div class="cursor-glow" id="cursor-glow"></div>
+<div class="cursor-ring"  id="cursor-ring"></div>
+<div class="cursor-dot"   id="cursor-dot"></div>
 
 <!-- Scanlines -->
 <div id="scanlines"></div>
@@ -880,6 +940,7 @@
     <div class="hero-cta">
       <a href="#experience" class="btn btn-cta">VIEW EXPERIENCE</a>
       <a href="#contact"    class="btn btn-ghost">GET IN TOUCH</a>
+      <a href="Resume_Nikhil_Rao.pdf" download="Nikhil_Rao_Resume.pdf" class="btn btn-ghost" style="border-color:var(--gold);color:var(--gold)">↓ RESUME</a>
     </div>
 
     <div class="hero-stats">
@@ -1161,10 +1222,15 @@
     <!-- Live repo cards — populated by JS -->
     <p class="section-label" style="margin-bottom:24px">// LIVE REPOSITORIES</p>
     <div class="repo-grid" id="repo-grid">
-      <!-- skeletons shown while fetching -->
       <div class="repo-skeleton"><div class="skel-line" style="height:12px;width:60%"></div><div class="skel-line" style="height:10px;width:90%"></div><div class="skel-line" style="height:10px;width:75%"></div></div>
       <div class="repo-skeleton"><div class="skel-line" style="height:12px;width:55%"></div><div class="skel-line" style="height:10px;width:85%"></div><div class="skel-line" style="height:10px;width:70%"></div></div>
       <div class="repo-skeleton"><div class="skel-line" style="height:12px;width:65%"></div><div class="skel-line" style="height:10px;width:80%"></div><div class="skel-line" style="height:10px;width:60%"></div></div>
+    </div>
+
+    <!-- View all repos link -->
+    <div style="text-align:center;margin-top:36px">
+      <a href="https://github.com/OMGitsNIK?tab=repositories" target="_blank" rel="noopener"
+         class="btn btn-ghost" style="display:inline-block">VIEW ALL REPOSITORIES ⬡</a>
     </div>
   </div>
 </section>
@@ -1211,11 +1277,14 @@
           <a href="mailto:raonik1003@gmail.com" class="c-link">
             <span class="c-icon">✉</span>raonik1003@gmail.com
           </a>
-          <a href="tel:+919359206776" class="c-link">
-            <span class="c-icon">◈</span>+91 93592 06776
-          </a>
           <a href="https://linkedin.com/in/nikhil-rao-90b337221" target="_blank" rel="noopener" class="c-link">
             <span class="c-icon">⬡</span>linkedin.com/in/nikhil-rao-90b337221
+          </a>
+          <a href="https://github.com/OMGitsNIK" target="_blank" rel="noopener" class="c-link">
+            <span class="c-icon">⌥</span>github.com/OMGitsNIK
+          </a>
+          <a href="https://x.com/AlphaQ12345" target="_blank" rel="noopener" class="c-link">
+            <span class="c-icon">✕</span>x.com/AlphaQ12345
           </a>
         </div>
       </div>
@@ -1405,16 +1474,16 @@ function handleForm(e) {
   }
 
   const btn  = document.getElementById('form-btn');
-  const orig = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'TRANSMITTED ✓';
-  btn.style.background = 'var(--cyan)';
-  btn.style.color = 'var(--bg)';
+  /* Use hex values — CSS custom properties don't resolve in JS inline styles */
+  btn.style.cssText = 'border:none;cursor:none;background:#00f5d4;color:#020817;';
+  btn.classList.add('btn-transmitting');
+  btn.addEventListener('animationend', () => btn.classList.remove('btn-transmitting'), { once: true });
 
   setTimeout(() => {
-    btn.textContent = orig;
-    btn.style.background = '';
-    btn.style.color = '';
+    btn.style.cssText = 'border:none;cursor:none;';
+    btn.textContent = 'TRANSMIT →';
     btn.disabled = false;
     e.target.reset();
   }, 3200);
@@ -1517,9 +1586,8 @@ function handleForm(e) {
           </div>`;
       }
 
-      /* Repo cards — sort by stars then push date */
-      repos.sort((a, b) => (b.stargazers_count - a.stargazers_count)
-                         || (new Date(b.pushed_at) - new Date(a.pushed_at)));
+      /* Repo cards — 6 most recently pushed */
+      repos.sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
       repoGrid.innerHTML = repos.slice(0, 6).map(repoCard).join('');
 
     } catch {
@@ -1529,6 +1597,53 @@ function handleForm(e) {
   }
 
   loadGitHub();
+})();
+
+/* ── Custom cursor ── */
+(function () {
+  const dot  = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  const glow = document.getElementById('cursor-glow');
+
+  if (!dot || !ring || !glow) return;
+
+  let mx = -200, my = -200;   /* start off-screen */
+  let rx = -200, ry = -200;
+  let hidden = false;
+
+  /* Dot tracks cursor instantly */
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.left  = mx + 'px';
+    dot.style.top   = my + 'px';
+    glow.style.left = mx + 'px';
+    glow.style.top  = my + 'px';
+    if (hidden) { dot.style.opacity = '1'; ring.style.opacity = '1'; hidden = false; }
+  });
+
+  document.addEventListener('mouseleave', () => {
+    dot.style.opacity = '0'; ring.style.opacity = '0'; hidden = true;
+  });
+
+  /* Ring lerps toward cursor — creates trailing lag */
+  (function lerp() {
+    rx += (mx - rx) * 0.11;
+    ry += (my - ry) * 0.11;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(lerp);
+  })();
+
+  /* Expand ring on hoverable elements */
+  const hoverEls = document.querySelectorAll('a, button, .chip, .tear-card, .repo-card, .c-link, .skill-cat');
+  hoverEls.forEach(el => {
+    el.addEventListener('mouseenter', () => ring.classList.add('expanded'));
+    el.addEventListener('mouseleave', () => ring.classList.remove('expanded'));
+  });
+
+  /* Click burst — momentary dot scale */
+  document.addEventListener('mousedown', () => { dot.style.transform = 'translate(-50%,-50%) scale(2.5)'; dot.style.opacity = '.7'; });
+  document.addEventListener('mouseup',   () => { dot.style.transform = 'translate(-50%,-50%) scale(1)';   dot.style.opacity = '1'; });
 })();
 </script>
 </body>
