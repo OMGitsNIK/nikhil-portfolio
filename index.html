@@ -924,6 +924,7 @@
       .block::before { left:-38px; width:18px; height:18px; }
       .block::after  { left:-20px; width:20px; }
       nav .nav-links { display:none; }
+      .hamburger     { display:flex; }
       .hero-stats    { gap:24px; }
       .projects-grid { grid-template-columns:1fr; }
     }
@@ -989,6 +990,102 @@
       /* Holo card */
       .holo-card { padding:26px 20px; }
     }
+    /* ─── Hamburger + Mobile Nav Overlay ─── */
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      background: none; border: none; padding: 6px; cursor: none; z-index: 1002;
+    }
+    .hamburger span {
+      display: block; width: 24px; height: 2px;
+      background: var(--cyan); box-shadow: 0 0 6px rgba(0,245,212,.5);
+      transition: transform .38s cubic-bezier(.77,0,.175,1), opacity .25s, background .25s;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-nav-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(2,8,23,.97);
+      backdrop-filter: blur(24px) saturate(160%);
+      background-image:
+        linear-gradient(rgba(0,245,212,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,212,.025) 1px, transparent 1px);
+      background-size: 52px 52px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 4px;
+      pointer-events: none; opacity: 0;
+      transition: opacity .28s ease;
+    }
+    .mobile-nav-overlay.open { opacity: 1; pointer-events: all; }
+
+    @keyframes mNavIn {
+      from { opacity:0; transform: translateX(32px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+    .mobile-nav-overlay a {
+      font-family: 'Orbitron', monospace; font-size: clamp(1.2rem,5vw,1.7rem); font-weight: 900;
+      color: var(--dim); text-decoration: none; letter-spacing: .2em;
+      padding: 10px 0; opacity: 0;
+      display: flex; align-items: center; gap: 14px;
+      transition: color .2s, text-shadow .2s;
+    }
+    .mobile-nav-overlay.open a:nth-child(1) { animation: mNavIn .32s .04s both; }
+    .mobile-nav-overlay.open a:nth-child(2) { animation: mNavIn .32s .09s both; }
+    .mobile-nav-overlay.open a:nth-child(3) { animation: mNavIn .32s .14s both; }
+    .mobile-nav-overlay.open a:nth-child(4) { animation: mNavIn .32s .19s both; }
+    .mobile-nav-overlay.open a:nth-child(5) { animation: mNavIn .32s .24s both; }
+    .mobile-nav-overlay.open a:nth-child(6) { animation: mNavIn .32s .29s both; }
+    .mobile-nav-overlay.open a:nth-child(7) { animation: mNavIn .32s .34s both; }
+    .mobile-nav-overlay a .mnav-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .58rem; color: rgba(0,245,212,.35); letter-spacing: .25em;
+      min-width: 28px;
+    }
+    .mobile-nav-overlay a:hover { color: var(--cyan); text-shadow: 0 0 28px rgba(0,245,212,.5); }
+    .mobile-nav-overlay a:hover .mnav-num { color: var(--cyan); }
+
+    /* ─── On-Chain Channel ─── */
+    .cipher-channels {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 14px;
+    }
+    .cipher-ch { padding: 14px; border: 1px solid rgba(0,245,212,.1); }
+    .cipher-ch-label {
+      font-family: 'Share Tech Mono', monospace; font-size: .58rem;
+      letter-spacing: .2em; margin-bottom: 12px;
+    }
+    .cipher-ch-a { border-color: rgba(0,245,212,.15); }
+    .cipher-ch-a .cipher-ch-label { color: var(--cyan); }
+    .cipher-ch-b { border-color: rgba(124,58,237,.2); }
+    .cipher-ch-b .cipher-ch-label { color: var(--purple); }
+    .cipher-ch .btn { font-size:.6rem; padding:8px 14px; border:none; cursor:none; width:100%; text-align:center; margin-bottom:7px; }
+
+    .wallet-info {
+      font-family: 'Share Tech Mono', monospace; font-size: .65rem;
+      margin-bottom: 10px; display: none; line-height: 1.8;
+    }
+    .wallet-addr { color: var(--cyan); }
+    .chain-pill {
+      font-size: .56rem; color: var(--purple);
+      border: 1px solid rgba(124,58,237,.4);
+      padding: 1px 6px; margin-left: 5px;
+    }
+    .tx-result {
+      font-family: 'Share Tech Mono', monospace; font-size: .6rem;
+      color: var(--cyan); margin-top: 10px; display: none;
+      word-break: break-all; line-height: 1.7;
+    }
+    .tx-result a { color: var(--cyan); text-decoration: underline; }
+    .no-wallet-note {
+      font-family: 'Share Tech Mono', monospace; font-size: .6rem;
+      color: #f87171; margin-top: 8px; display: none; line-height: 1.6;
+    }
+
+    @media (max-width: 540px) {
+      .cipher-channels { grid-template-columns: 1fr; }
+    }
+
   </style>
 </head>
 <body>
@@ -1030,8 +1127,23 @@
       <li><a href="#education">EDUCATION</a></li>
       <li><a href="#contact">CONTACT</a></li>
     </ul>
+    <!-- Hamburger — visible only on mobile -->
+    <button class="hamburger" id="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
+
+<!-- Mobile nav overlay -->
+<div class="mobile-nav-overlay" id="mobile-nav-overlay" role="dialog" aria-modal="true">
+  <a href="#about"      onclick="closeMobileNav()"><span class="mnav-num">01.</span>ABOUT</a>
+  <a href="#skills"     onclick="closeMobileNav()"><span class="mnav-num">02.</span>SKILLS</a>
+  <a href="#experience" onclick="closeMobileNav()"><span class="mnav-num">03.</span>EXPERIENCE</a>
+  <a href="#projects"   onclick="closeMobileNav()"><span class="mnav-num">04.</span>PROJECTS</a>
+  <a href="#github"     onclick="closeMobileNav()"><span class="mnav-num">05.</span>GITHUB</a>
+  <a href="#education"  onclick="closeMobileNav()"><span class="mnav-num">06.</span>EDUCATION</a>
+  <a href="#contact"    onclick="closeMobileNav()"><span class="mnav-num">07.</span>CONTACT</a>
+</div>
 
 <!-- ══════════════════════════════
      HERO
@@ -1442,15 +1554,42 @@
           <div class="cipher-head">✓ CIPHER GENERATED</div>
           <div class="cipher-proto">RSA-OAEP-2048 + AES-256-GCM · ZERO-KNOWLEDGE</div>
           <div class="cipher-text" id="cipher-text"></div>
-          <div class="cipher-actions">
-            <button class="btn btn-cta" id="copy-btn" onclick="copyCipher()"
-                    style="border:none;cursor:none;font-size:.62rem;padding:8px 18px">COPY CIPHER</button>
-            <button class="btn btn-ghost" onclick="openEmail()"
-                    style="border:none;cursor:none;font-size:.62rem;padding:8px 18px">OPEN EMAIL →</button>
+          <p class="cipher-status ok" id="cipher-status" style="margin-bottom:14px"></p>
+
+          <!-- Two transmission channels -->
+          <div class="cipher-channels">
+
+            <!-- Channel A: Email -->
+            <div class="cipher-ch cipher-ch-a">
+              <div class="cipher-ch-label">// CHANNEL A · EMAIL</div>
+              <button class="btn btn-cta"   id="copy-btn"  onclick="copyCipher()">COPY CIPHER</button>
+              <button class="btn btn-ghost"                onclick="openEmail()">OPEN EMAIL →</button>
+            </div>
+
+            <!-- Channel B: On-Chain -->
+            <div class="cipher-ch cipher-ch-b">
+              <div class="cipher-ch-label">// CHANNEL B · ON-CHAIN</div>
+              <!-- State 1: not connected -->
+              <button class="btn btn-ghost" id="connect-btn" onclick="connectWallet()"
+                      style="border-color:var(--purple);color:var(--purple)">CONNECT WALLET</button>
+              <p class="no-wallet-note" id="no-wallet-note">
+                ⚠ NO WEB3 WALLET DETECTED<br>
+                Install MetaMask or use a WalletConnect-compatible browser
+              </p>
+              <!-- State 2: connected -->
+              <div class="wallet-info" id="wallet-info">
+                <span class="wallet-addr" id="wallet-addr-display"></span>
+                <span class="chain-pill"  id="chain-pill"></span>
+              </div>
+              <button class="btn btn-ghost" id="onchain-btn" onclick="sendOnChain()"
+                      style="display:none;border-color:var(--purple);color:var(--purple)">
+                TRANSMIT ON-CHAIN →
+              </button>
+              <!-- State 3: tx confirmed -->
+              <div class="tx-result" id="tx-result"></div>
+            </div>
+
           </div>
-          <p class="cipher-status" id="cipher-status">
-            PASTE CIPHER IN EMAIL BODY · SEND TO raonik1003@gmail.com
-          </p>
         </div>
       </div>
 
@@ -1560,7 +1699,7 @@ window.addEventListener('load', () => {
 const _PUB = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoDvz3svGKQUkOGJXjxc5rpEJ5s4vyzTlmhiSmXni4714AGDgmBA0Trl1QFHYhEjTBcKbxM5tIDewOCTPFOJXnKEZxVB11kr8nO+w/82RN3H6x+A9JfSqFSij27Z6khOAxOO9GO9b8IC9KQw4aEbPwMqDzieH2a8QLtmkVeIZAERkTpqp6i9CW+eqHRaDxjzr08M8jUmYtsgmJEbguZRcBQbiKfLMcbnORtXMuVyQIoqoI6tnqDKJUxaJojI9TVbhfwO6vMTupxrM2nBKMGQ//hX6q5+SG1h+LYza9XpXDdC1AcOi7zE75vUtgoY1fwi4abys+uF/lhFAWThKRciN/QIDAQAB';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]{2,}\.[^\s@]{2,}$/;
-let _lastCipher = '';
+window._lastCipher = '';
 
 /* ── validation helpers ── */
 function setErr(inputId, groupId, errId, msg) {
@@ -1871,6 +2010,153 @@ function openEmail() {
   /* Click burst — momentary dot scale */
   document.addEventListener('mousedown', () => { dot.style.transform = 'translate(-50%,-50%) scale(2.5)'; dot.style.opacity = '.7'; });
   document.addEventListener('mouseup',   () => { dot.style.transform = 'translate(-50%,-50%) scale(1)';   dot.style.opacity = '1'; });
+})();
+
+/* ══════════════════════════════════════════════════════
+   HAMBURGER — MOBILE NAV
+══════════════════════════════════════════════════════ */
+(function () {
+  const btn     = document.getElementById('hamburger');
+  const overlay = document.getElementById('mobile-nav-overlay');
+  if (!btn || !overlay) return;
+
+  function openMobileNav() {
+    btn.classList.add('open');
+    overlay.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+
+  window.closeMobileNav = function () {
+    btn.classList.remove('open');
+    overlay.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  };
+
+  btn.addEventListener('click', () => {
+    btn.classList.contains('open') ? closeMobileNav() : openMobileNav();
+  });
+
+  /* Close on Escape */
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileNav(); });
+})();
+
+/* ══════════════════════════════════════════════════════
+   ON-CHAIN ENCRYPTED INBOX
+   Sends the RSA+AES cipher as hex calldata in a 0-ETH
+   transaction to Nikhil's wallet. Readable on any EVM
+   block explorer — Input Data → UTF-8 → NR1:...
+   ⚠ Replace NIKHIL_ADDR with your real ETH address.
+══════════════════════════════════════════════════════ */
+(function () {
+  /* ── replace this with your real wallet address ── */
+  const NIKHIL_ADDR = '0x0000000000000000000000000000000000000000';
+
+  const CHAINS = {
+    '0x1'   : { name: 'Ethereum',  explorer: 'https://etherscan.io/tx/' },
+    '0x89'  : { name: 'Polygon',   explorer: 'https://polygonscan.com/tx/' },
+    '0x2105': { name: 'Base',      explorer: 'https://basescan.org/tx/' },
+    '0xa'   : { name: 'Optimism',  explorer: 'https://optimistic.etherscan.io/tx/' },
+    '0xa4b1': { name: 'Arbitrum',  explorer: 'https://arbiscan.io/tx/' },
+    '0x38'  : { name: 'BNB Chain', explorer: 'https://bscscan.com/tx/' },
+  };
+
+  let _walletAddr = null;
+  let _chainId    = null;
+
+  /* ── helpers ── */
+  function shortAddr(a) { return a.slice(0,6) + '...' + a.slice(-4); }
+
+  function setWalletUI(connected) {
+    document.getElementById('connect-btn').style.display  = connected ? 'none'  : 'block';
+    document.getElementById('wallet-info').style.display  = connected ? 'block' : 'none';
+    document.getElementById('onchain-btn').style.display  = connected ? 'block' : 'none';
+  }
+
+  function updateChainDisplay() {
+    const info = CHAINS[_chainId] || { name: 'Chain ' + _chainId, explorer: '' };
+    document.getElementById('wallet-addr-display').textContent = shortAddr(_walletAddr);
+    document.getElementById('chain-pill').textContent          = info.name;
+  }
+
+  /* ── connect wallet ── */
+  window.connectWallet = async function () {
+    if (!window.ethereum) {
+      document.getElementById('no-wallet-note').style.display = 'block';
+      return;
+    }
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      _walletAddr = accounts[0];
+      _chainId    = await window.ethereum.request({ method: 'eth_chainId' });
+      updateChainDisplay();
+      setWalletUI(true);
+
+      /* Listen for account / chain changes */
+      window.ethereum.on('accountsChanged', accs => {
+        _walletAddr = accs[0] || null;
+        if (!_walletAddr) { setWalletUI(false); return; }
+        updateChainDisplay();
+      });
+      window.ethereum.on('chainChanged', id => {
+        _chainId = id;
+        updateChainDisplay();
+        /* Reset any previous tx result */
+        const txEl = document.getElementById('tx-result');
+        txEl.style.display = 'none'; txEl.innerHTML = '';
+      });
+    } catch (err) {
+      console.warn('Wallet connection rejected:', err.message);
+    }
+  };
+
+  /* ── send on-chain ── */
+  window.sendOnChain = async function () {
+    if (!_walletAddr || !window._lastCipher) return;
+
+    const btn = document.getElementById('onchain-btn');
+    const txEl = document.getElementById('tx-result');
+    btn.disabled = true;
+    btn.textContent = 'TRANSMITTING...';
+    txEl.style.display = 'none';
+
+    try {
+      /* Encode cipher string → hex calldata */
+      const calldata = '0x' + Array.from(new TextEncoder().encode(window._lastCipher))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+
+      const txHash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: _walletAddr, to: NIKHIL_ADDR, value: '0x0', data: calldata }]
+      });
+
+      const explorerBase = (CHAINS[_chainId] || {}).explorer || '';
+      txEl.style.display = 'block';
+      txEl.innerHTML = explorerBase
+        ? `✓ TX CONFIRMED<br><a href="${explorerBase}${txHash}" target="_blank" rel="noopener">${txHash.slice(0,18)}...${txHash.slice(-6)}</a>`
+        : `✓ TX HASH<br>${txHash}`;
+
+      btn.textContent = 'TRANSMITTED ✓';
+      btn.style.background = '#7c3aed'; btn.style.color = '#fff';
+      setTimeout(() => {
+        btn.textContent = 'TRANSMIT ON-CHAIN →';
+        btn.style.background = ''; btn.style.color = '';
+        btn.disabled = false;
+      }, 4000);
+
+    } catch (err) {
+      btn.textContent   = err.code === 4001 ? 'REJECTED BY USER' : '⚠ TX FAILED';
+      btn.style.color   = '#f87171';
+      setTimeout(() => {
+        btn.textContent = 'TRANSMIT ON-CHAIN →';
+        btn.style.color = '';
+        btn.disabled    = false;
+      }, 2500);
+    }
+  };
+
+  /* _lastCipher is already on window (set at global scope above) */
 })();
 </script>
 </body>
