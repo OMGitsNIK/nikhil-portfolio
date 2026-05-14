@@ -1644,9 +1644,14 @@ function copyCipher() {
 function openEmail() {
   const sub  = encodeURIComponent('Encrypted Message · NR Portfolio');
   const body = encodeURIComponent(
-    'Paste your encrypted payload below and send — only Nikhil can decrypt it.\n\n' + _lastCipher
+    'Hi Nikhil,\n\nHere is my encrypted message from your portfolio:\n\n' + _lastCipher +
+    '\n\n(Only you can decrypt this with your private key.)'
   );
-  window.open(`mailto:raonik1003@gmail.com?subject=${sub}&body=${body}`, '_blank');
+  /* Gmail compose URL — works in any browser, no email client needed */
+  window.open(
+    `https://mail.google.com/mail/?view=cm&fs=1&to=raonik1003%40gmail.com&su=${sub}&body=${body}`,
+    '_blank'
+  );
 }
 
 /* ── GitHub live repos ── */
