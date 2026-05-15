@@ -1156,18 +1156,18 @@
     .overlay-eth {
       width: 68vw; height: auto;
       fill: white;
-      filter: drop-shadow(0 0 50px rgba(124,58,237,.35));
+      filter: drop-shadow(0 0 80px rgba(124,58,237,.65));
     }
     .overlay-sol {
       width: 84vw; height: auto; /* Solana mark is wide/flat */
     }
-    body.eth-connected .overlay-eth { opacity: 0.068; }
+    body.eth-connected .overlay-eth { opacity: 0.13; }
     body.sol-connected .overlay-sol { opacity: 0.082; }
 
     /* ── Chain theme overrides ── */
-    body.eth-connected { background: #06051a; }
+    body.eth-connected { background: #0a0520; }
     body.sol-connected { background: #031710; }
-    body.eth-connected nav { border-bottom-color: rgba(124,58,237,.28); background: rgba(6,5,26,.86); }
+    body.eth-connected nav { border-bottom-color: rgba(124,58,237,.45); background: rgba(10,5,32,.9); }
     body.sol-connected nav { border-bottom-color: rgba(20,241,149,.22); background: rgba(3,23,16,.88); }
     body.eth-connected .section-title {
       background: linear-gradient(135deg,#fff 20%,var(--purple) 100%);
@@ -2456,8 +2456,8 @@ function openEmail() {
     }
     if (chain === 'eth') {
       document.body.classList.add('eth-connected');
-      root.style.setProperty('--border', 'rgba(124,58,237,0.22)');
-      root.style.setProperty('--glow',   '0 0 20px rgba(124,58,237,0.5)');
+      root.style.setProperty('--border', 'rgba(124,58,237,0.35)');
+      root.style.setProperty('--glow',   '0 0 26px rgba(124,58,237,0.75)');
     } else {
       document.body.classList.add('sol-connected');
       root.style.setProperty('--border', 'rgba(20,241,149,0.22)');
