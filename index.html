@@ -3750,9 +3750,43 @@ function openEmail() {
     if (!_cachedPixels) { if (amMintBtn) { amMintBtn.textContent = '⚠ NO IMAGE'; setTimeout(() => updateMintBtn(), 1500); } return; }
     if (amMintBtn) { amMintBtn.textContent = '⏳ MINTING...'; amMintBtn.disabled = true; }
     try {
-      const raw    = new TextEncoder().encode(_currentChar.id + address + Date.now());
-      const digest = await crypto.subtle.digest('SHA-256', raw);
-      const token  = Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      const issuedAt = new Date().toISOString();
+      const raw      = new TextEncoder().encode(_currentChar.id + address + issuedAt);
+      const digest   = await crypto.subtle.digest('SHA-256', raw);
+      const token    = Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+
+      /* ── Wallet signature ── */
+      const sigMessage = [
+        'ANIME-ASCII-CARD',
+        `CHARACTER: ${_currentChar.id}`,
+        `NAME: ${_currentChar.name}`,
+        `TOKEN: ${token}`,
+        `ISSUED: ${issuedAt}`,
+      ].join('\n');
+
+      let signature = null;
+      if (amMintBtn) { amMintBtn.textContent = '✍ SIGN IN WALLET...'; }
+      try {
+        if (chain === 'eth' && window.ethereum) {
+          signature = await window.ethereum.request({
+            method: 'personal_sign',
+            params: [sigMessage, address],
+          });
+        } else if (chain === 'sol' && window.solana) {
+          const encoded = new TextEncoder().encode(sigMessage);
+          const result  = await window.solana.signMessage(encoded, 'utf8');
+          const sigBytes = result.signature ?? result;
+          signature = Array.from(sigBytes).map(b => b.toString(16).padStart(2,'0')).join('');
+        }
+      } catch (sigErr) {
+        /* User rejected the signing request — abort cleanly */
+        if (sigErr.code === 4001 || sigErr.message?.includes('User rejected')) {
+          if (amMintBtn) { amMintBtn.textContent = '✗ SIGNING CANCELLED'; setTimeout(() => { amMintBtn.disabled = false; updateMintBtn(); }, 2000); }
+          return;
+        }
+        /* Signing unavailable (e.g. hardware wallet quirk) — continue without sig */
+      }
+      if (amMintBtn) { amMintBtn.textContent = '⏳ BUILDING CARD...'; }
 
       const accent = chain === 'eth' ? '#7c3aed' : '#14f195';
       const ramp   = RAMPS[_ctrl.ramp] || RAMPS.standard;
@@ -3775,7 +3809,7 @@ function openEmail() {
 
       const fSize = 7;
       const svgW  = cols * fSize + 40;
-      const svgH  = rows * fSize * 1.15 + 120;
+      const svgH  = rows * fSize * 1.15 + 134; /* extra 14px for signature line */
       const textRows = asciiLines.map((line,i) =>
         `<text x="20" y="${20 + i*fSize*1.15}" fill="${accent}" font-size="${fSize}">${escXml(line)}</text>`
       ).join('');
@@ -3785,17 +3819,21 @@ function openEmail() {
   <rect width="${svgW}" height="${svgH}" fill="#020817"/>
   <rect x="1" y="1" width="${svgW-2}" height="${svgH-2}" fill="none" stroke="${accent}" stroke-width="1" opacity="0.6"/>
   ${textRows}
-  <text x="20" y="${svgH-56}" fill="${accent}" font-size="8" opacity="0.8">${escXml(_currentChar.name)} · ${escXml(_currentChar.source)}</text>
-  <text x="20" y="${svgH-42}" fill="${accent}" font-size="7" opacity="0.5">RARITY: ${_currentChar.tier} · FAV: ${_currentChar.favourites}</text>
-  <text x="20" y="${svgH-28}" fill="${accent}" font-size="7" opacity="0.5">CHAIN: ${chain.toUpperCase()} · TOKEN: ${token.slice(0,16)}...</text>
-  <text x="20" y="${svgH-14}" fill="${accent}" font-size="7" opacity="0.35">ISSUED: ${new Date().toISOString()}</text>
+  <text x="20" y="${svgH-70}" fill="${accent}" font-size="8" opacity="0.8">${escXml(_currentChar.name)} · ${escXml(_currentChar.source)}</text>
+  <text x="20" y="${svgH-56}" fill="${accent}" font-size="7" opacity="0.5">RARITY: ${_currentChar.tier} · FAV: ${_currentChar.favourites}</text>
+  <text x="20" y="${svgH-42}" fill="${accent}" font-size="7" opacity="0.5">CHAIN: ${chain.toUpperCase()} · WALLET: ${address.slice(0,8)}...${address.slice(-4)}</text>
+  <text x="20" y="${svgH-28}" fill="${accent}" font-size="7" opacity="0.5">TOKEN: ${token.slice(0,24)}...</text>
+  <text x="20" y="${svgH-14}" fill="${accent}" font-size="7" opacity="0.35">${signature ? '✦ CRYPTOGRAPHICALLY SIGNED' : '// UNSIGNED'} · ${issuedAt}</text>
   <!--
     %%ANIME-CARD-SIGNATURE
     %%WALLET:${address}
     %%CHAIN:${chain.toUpperCase()}
     %%CHARACTER:${_currentChar.id}
     %%TOKEN:${token}
-    %%ISSUED:${new Date().toISOString()}
+    %%ISSUED:${issuedAt}
+    %%SIG-MESSAGE:${sigMessage.replace(/\n/g,'|')}
+    ${signature ? `%%SIGNATURE:${signature}` : '%%SIGNATURE:none'}
+    %%VERIFY-ETH: https://etherscan.io/verifySig (paste message + sig + address)
     %%END-SIGNATURE
   -->
 </svg>`;
