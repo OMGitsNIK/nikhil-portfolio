@@ -3807,15 +3807,21 @@ function openEmail() {
         }
       }
 
-      const fSize = 7;
-      const svgW  = cols * fSize + 40;
-      const svgH  = rows * fSize * 1.15 + 134; /* extra 14px for signature line */
-      const textRows = asciiLines.map((line,i) =>
-        `<text x="20" y="${20 + i*fSize*1.15}" fill="${accent}" font-size="${fSize}">${escXml(line)}</text>`
+      const fSize  = 9;
+      /* Share Tech Mono character width ≈ 0.601 × fontSize.
+         Using textLength on each row forces the art to fill the content area
+         exactly, eliminating the blank void on the right that caused squishing. */
+      const charW  = fSize * 0.601;
+      const contentW = Math.round(cols * charW);
+      const svgW   = contentW + 40;  /* 20px padding each side */
+      const lineH  = fSize * 1.18;
+      const svgH   = Math.round(rows * lineH) + 134;
+      const textRows = asciiLines.map((line, i) =>
+        `<text x="20" y="${Math.round(20 + i * lineH)}" fill="${accent}" font-size="${fSize}" textLength="${contentW}" lengthAdjust="spacingAndGlyphs">${escXml(line)}</text>`
       ).join('');
 
       const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}" style="background:#020817;font-family:'Share Tech Mono',monospace">
+<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" style="background:#020817;font-family:'Share Tech Mono',monospace">
   <rect width="${svgW}" height="${svgH}" fill="#020817"/>
   <rect x="1" y="1" width="${svgW-2}" height="${svgH-2}" fill="none" stroke="${accent}" stroke-width="1" opacity="0.6"/>
   ${textRows}
