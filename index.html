@@ -1586,6 +1586,38 @@
     }
     .am-coll-empty small { font-size: .58rem; opacity: .6; }
 
+    /* ── Mobile responsiveness ── */
+    @media (max-width: 540px) {
+      .am-box {
+        padding: 44px 14px 18px;
+        max-height: 96vh;
+        width: 100vw;
+        border-left: none; border-right: none;
+      }
+      .am-close { top: 10px; right: 10px; font-size: 1.2rem; cursor: pointer; }
+      .am-header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+      .am-title { font-size: .65rem; }
+      .am-tabs { width: 100%; }
+      .am-tab { flex: 1; text-align: center; padding: 8px 4px; font-size: .52rem; letter-spacing: .1em; cursor: pointer; }
+      .am-canvas-wrap { min-height: 180px; }
+      .am-controls { gap: 10px; }
+      .am-actions { flex-direction: row; flex-wrap: wrap; }
+      .am-actions > * { flex: 1 1 calc(50% - 4px); text-align: center; }
+      .am-slider { cursor: pointer; }
+      .am-slider::-webkit-slider-thumb { cursor: pointer; width: 18px; height: 18px; }
+      .am-option { cursor: pointer; padding: 12px 10px; font-size: .6rem; }
+      .am-guess-side { gap: 8px; }
+      .am-score-val { font-size: 1.1rem; }
+      .am-coll-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 7px; }
+      .am-coll-card { cursor: pointer; }
+      .am-coll-section-label { font-size: .55rem; }
+      #am-wallet-line { font-size: .55rem; }
+      .am-reveal { font-size: .6rem; }
+      .am-ramp-btn, .am-color-btn { cursor: pointer; padding: 6px 8px; }
+      .am-toggle { cursor: pointer; }
+      .am-toggle input { width: 16px; height: 16px; }
+    }
+
     /* Difficulty slider: green (left/easy) → red (right/hard) */
     #am-difficulty {
       background: linear-gradient(to right, #22c55e, #facc15, #ef4444);
@@ -3001,6 +3033,9 @@ function openEmail() {
     /* Apply / remove theme */
     applyTheme(connected ? _nr_chain : null);
 
+    /* Notify other modules (e.g. AnimeAsciiLab) that wallet state changed */
+    window.dispatchEvent(new CustomEvent('nr:walletChange'));
+
     /* Modal connected panel */
     if (connected && wmConnPanel && wmConnAddr) {
       wmConnPanel.classList.add('visible');
@@ -4000,6 +4035,13 @@ function openEmail() {
   wireControls();
   startAnimeGlyphCycle();
   updateScoreDisplay();
+
+  /* Live-refresh anime UI whenever wallet connects/disconnects */
+  window.addEventListener('nr:walletChange', () => {
+    updateMintBtn();
+    updateWalletColorBtn();
+    updateWalletLine();
+  });
 
 })();
 </script>
