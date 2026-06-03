@@ -244,7 +244,7 @@
       white-space: nowrap;
       display: inline-block;
       animation:
-        typing 3.5s steps(44, end) both,
+        typing 3.5s steps(41, end) both,
         blink  .75s step-end infinite;
     }
     @keyframes typing { from { width:0 } to { width:100% } }
@@ -641,20 +641,50 @@
     }
 
     #education { background:linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%); }
-    .edu-wrap { max-width:700px; margin:0 auto; position:relative; }
+    .edu-wrap { max-width:700px; margin:0 auto; position:relative; perspective:900px; }
 
-    /* Spinning conic border like holo-card */
+    /* Metallic 3D card */
     .edu-card {
       position:relative; padding:48px;
-      background:rgba(10,22,40,.85);
+      transform-style:preserve-3d;
+      transition:transform .1s ease-out, box-shadow .1s ease-out;
+      will-change:transform;
+      /* brushed-metal micro-texture + dark steel base */
+      background:
+        repeating-linear-gradient(
+          98deg,
+          transparent, transparent 2px,
+          rgba(255,255,255,.013) 2px, rgba(255,255,255,.013) 4px
+        ),
+        linear-gradient(150deg,
+          #050c16 0%, #080f1c 20%, #0c1828 38%,
+          #060e1a 52%, #0a1522 68%, #050c16 100%
+        );
+      box-shadow:
+        0 0 0 1px rgba(0,245,212,.28),
+        inset 0 1px 0 rgba(255,255,255,.14),
+        inset 0 -1px 0 rgba(0,0,0,.55),
+        0 28px 80px rgba(0,0,0,.88),
+        0 0 35px rgba(0,245,212,.07);
       animation: holoSpin 9s linear infinite;
     }
     .edu-card::before {
-      content:''; position:absolute; inset:-1.5px; z-index:-1;
+      content:''; position:absolute; inset:-2px; z-index:-1;
       background: conic-gradient(
         from var(--gradient-angle),
-        var(--cyan) 0deg, transparent 55deg, transparent 120deg,
-        var(--purple) 180deg, transparent 235deg, transparent 300deg,
+        var(--cyan) 0deg, transparent 80deg, transparent 100deg,
+        var(--purple) 180deg, transparent 260deg, transparent 280deg,
+        var(--cyan) 360deg
+      );
+      filter: blur(3px);
+    }
+    /* sharp conic line on top of the blurred glow layer */
+    .edu-card-border {
+      position:absolute; inset:-1px; z-index:-1; pointer-events:none;
+      background: conic-gradient(
+        from var(--gradient-angle),
+        var(--cyan) 0deg, transparent 80deg, transparent 100deg,
+        var(--purple) 180deg, transparent 260deg, transparent 280deg,
         var(--cyan) 360deg
       );
     }
@@ -663,6 +693,16 @@
       top:16px; right:16px;
       font-family:'Share Tech Mono',monospace; font-size:.58rem;
       color:rgba(0,245,212,.15); letter-spacing:.22em;
+    }
+    /* moving specular highlight — tracks mouse position */
+    .edu-card-shine {
+      position:absolute; inset:0; z-index:3; pointer-events:none;
+      background: radial-gradient(
+        farthest-side circle at var(--shine-x,50%) var(--shine-y,0%),
+        rgba(255,255,255,.09) 0%,
+        rgba(0,245,212,.05) 30%,
+        transparent 70%
+      );
     }
     .edu-degree {
       font-family:'Orbitron',monospace; font-size:1.15rem; font-weight:700;
@@ -1197,7 +1237,7 @@
 
     /* ── Wallet modal ── */
     #wallet-modal {
-      position: fixed; inset: 0; z-index: 10000;
+      position: fixed; inset: 0; z-index: 10010;
       display: none; align-items: center; justify-content: center;
       background: rgba(2,8,23,.88);
       backdrop-filter: blur(18px) saturate(160%);
@@ -1275,6 +1315,310 @@
     body.eth-connected #resume-btn.unlocked { border-color: var(--purple); color: var(--purple); }
     body.sol-connected #resume-btn.unlocked { border-color: #14f195;        color: #14f195; }
     #resume-btn:hover::before { left: 0; }
+
+    /* ══════════════════════════════════════════════
+       ANIME ASCII LAB — symbol, modal, controls
+    ══════════════════════════════════════════════ */
+
+    /* Left floating symbol */
+    #anime-symbol {
+      position: absolute; left: 8%; top: 45%; z-index: 3;
+      font-size: clamp(2.8rem,5vw,4.5rem);
+      font-family: 'Share Tech Mono', monospace;
+      color: var(--cyan); opacity: .2; line-height: 1;
+      cursor: none; user-select: none;
+      animation: mystFloat 4s ease-in-out infinite;
+      transition: opacity .4s, text-shadow .4s, color .4s;
+    }
+    #anime-symbol:hover {
+      opacity: .72;
+      text-shadow: 0 0 18px currentColor, 0 0 36px currentColor;
+    }
+    body.eth-connected #anime-symbol { color: var(--purple); }
+    body.sol-connected #anime-symbol { color: #14f195; }
+    @media (max-width: 540px) {
+      #anime-symbol {
+        position: fixed; left: 18px; bottom: 88px;
+        top: auto; right: auto;
+        font-size: 1.5rem; opacity: .45; z-index: 100;
+        padding: 10px 12px;
+        background: rgba(2,8,23,.72);
+        border: 1px solid rgba(0,245,212,.28);
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        animation: mystFloat 4s ease-in-out infinite;
+      }
+    }
+
+    /* Modal backdrop */
+    #anime-modal {
+      position: fixed; inset: 0; z-index: 10000;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(2,8,23,.92);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    #anime-modal.open { display: flex; }
+
+    /* Modal box */
+    .am-box {
+      position: relative; background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 36px 32px 28px;
+      max-width: 1020px; width: 96vw; max-height: 90vh;
+      overflow-y: auto; animation: fadeUp .28s ease both;
+    }
+    .am-close {
+      position: absolute; top: 14px; right: 16px;
+      background: none; border: none; cursor: none;
+      color: var(--dim); font-size: 1.4rem; line-height: 1; padding: 4px 8px;
+      transition: color .2s;
+    }
+    .am-close:hover { color: var(--text); }
+
+    /* Header + tabs */
+    .am-header { display: flex; align-items: center; gap: 24px; margin-bottom: 22px; flex-wrap: wrap; }
+    .am-title {
+      font-family: 'Orbitron', monospace; font-size: .78rem; font-weight: 700;
+      color: var(--cyan); letter-spacing: .25em; flex-shrink: 0;
+    }
+    body.eth-connected .am-title { color: var(--purple); }
+    body.sol-connected .am-title { color: #14f195; }
+    .am-tabs { display: flex; gap: 4px; }
+    .am-tab {
+      font-family: 'Orbitron', monospace; font-size: .6rem; font-weight: 700;
+      letter-spacing: .18em; padding: 7px 16px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--dim); cursor: none; transition: color .2s, border-color .2s, background .2s;
+    }
+    .am-tab.active, .am-tab:hover { color: var(--cyan); border-color: var(--cyan); }
+    .am-tab.active { background: rgba(0,245,212,.08); }
+    body.eth-connected .am-tab.active { color: var(--purple); border-color: var(--purple); background: rgba(124,58,237,.1); }
+    body.sol-connected .am-tab.active { color: #14f195; border-color: #14f195; background: rgba(20,241,149,.08); }
+
+    /* Panels */
+    .am-panel { display: none; }
+    .am-panel.active { display: block; }
+
+    /* LAB layout */
+    .am-lab-layout { display: grid; grid-template-columns: 1fr 220px; gap: 20px; }
+    @media (max-width: 720px) { .am-lab-layout { grid-template-columns: 1fr; } }
+
+    /* Canvas wrap */
+    .am-canvas-wrap {
+      position: relative; background: #000; border: 1px solid var(--border);
+      overflow: hidden; min-height: 320px; display: flex; align-items: center; justify-content: center;
+    }
+    #am-canvas, #am-guess-canvas { display: block; max-width: 100%; }
+    .am-scanlines {
+      position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,0,0,.45) 2px, rgba(0,0,0,.45) 4px);
+      opacity: 0; transition: opacity .3s;
+    }
+    .am-scanlines.on {
+      opacity: 1;
+      animation: crtFlicker 5s ease-in-out infinite;
+      box-shadow: inset 0 0 60px rgba(0,0,0,.55), inset 0 0 120px rgba(0,0,0,.3);
+    }
+    @keyframes crtFlicker {
+      0%,100% { opacity: 1; }
+      92% { opacity: 1; }
+      93% { opacity: .7; }
+      94% { opacity: 1; }
+      96% { opacity: .85; }
+      97% { opacity: 1; }
+    }
+    .am-char-badge {
+      position: absolute; bottom: 8px; right: 10px;
+      font-family: 'Share Tech Mono', monospace; font-size: .55rem;
+      color: var(--dim); letter-spacing: .1em; opacity: .7;
+    }
+    .am-loading {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: #000; z-index: 2;
+    }
+    .am-loading.hidden { display: none; }
+    .am-loading-text {
+      font-family: 'Share Tech Mono', monospace; font-size: .7rem;
+      color: var(--cyan); letter-spacing: .2em;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    /* Controls sidebar */
+    .am-controls { display: flex; flex-direction: column; gap: 14px; }
+    .am-ctrl-section { display: flex; flex-direction: column; gap: 5px; }
+    .am-ctrl-label {
+      font-family: 'Orbitron', monospace; font-size: .52rem; font-weight: 700;
+      color: var(--dim); letter-spacing: .18em;
+    }
+    .am-ctrl-val { font-family: 'Share Tech Mono', monospace; font-size: .6rem; color: var(--cyan); }
+    .am-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 2px; background: var(--border); outline: none; cursor: none;
+    }
+    .am-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 12px; height: 12px;
+      background: var(--cyan); border-radius: 50%; cursor: none;
+    }
+    body.eth-connected .am-slider::-webkit-slider-thumb { background: var(--purple); }
+    body.sol-connected .am-slider::-webkit-slider-thumb { background: #14f195; }
+    .am-ramp-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+    .am-ramp-btn, .am-color-btn {
+      font-family: 'Share Tech Mono', monospace; font-size: .55rem;
+      padding: 4px 8px; border: 1px solid var(--border);
+      background: transparent; color: var(--dim); cursor: none;
+      transition: color .2s, border-color .2s;
+    }
+    .am-ramp-btn.active, .am-color-btn.active,
+    .am-ramp-btn:hover, .am-color-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+    body.eth-connected .am-ramp-btn.active, body.eth-connected .am-color-btn.active { color: var(--purple); border-color: var(--purple); }
+    body.sol-connected .am-ramp-btn.active, body.sol-connected .am-color-btn.active { color: #14f195; border-color: #14f195; }
+    .am-toggles { flex-direction: row; gap: 10px; flex-wrap: wrap; }
+    .am-toggle { display: flex; align-items: center; gap: 5px; cursor: none; }
+    .am-toggle input { accent-color: var(--cyan); cursor: none; }
+    .am-toggle span {
+      font-family: 'Share Tech Mono', monospace; font-size: .55rem;
+      color: var(--dim); letter-spacing: .1em;
+    }
+
+    /* Action buttons */
+    .am-actions { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+    .am-btn-primary {
+      font-family: 'Orbitron', monospace; font-size: .6rem; font-weight: 700;
+      letter-spacing: .15em; padding: 9px 14px;
+      border: 1px solid var(--cyan); color: var(--cyan);
+      background: transparent; cursor: none; transition: background .2s;
+    }
+    .am-btn-primary:hover { background: rgba(0,245,212,.1); }
+    body.eth-connected .am-btn-primary { border-color: var(--purple); color: var(--purple); }
+    body.eth-connected .am-btn-primary:hover { background: rgba(124,58,237,.1); }
+    body.sol-connected .am-btn-primary { border-color: #14f195; color: #14f195; }
+    body.sol-connected .am-btn-primary:hover { background: rgba(20,241,149,.08); }
+    .am-btn-ghost {
+      font-family: 'Share Tech Mono', monospace; font-size: .58rem;
+      letter-spacing: .12em; padding: 7px 14px;
+      border: 1px solid var(--border); color: var(--dim);
+      background: transparent; cursor: none; transition: color .2s, border-color .2s;
+    }
+    .am-btn-ghost:hover { color: var(--text); border-color: var(--text); }
+    .am-btn-mint {
+      font-family: 'Orbitron', monospace; font-size: .6rem; font-weight: 700;
+      letter-spacing: .15em; padding: 9px 14px;
+      border: 1px solid rgba(251,191,36,.5); color: var(--gold);
+      background: transparent; cursor: none; transition: background .2s, opacity .2s;
+    }
+    .am-btn-mint:hover { background: rgba(251,191,36,.08); }
+    .am-btn-mint:disabled { opacity: .35; pointer-events: none; }
+    body.eth-connected .am-btn-mint.wallet-ready { border-color: var(--purple); color: var(--purple); }
+    body.sol-connected .am-btn-mint.wallet-ready { border-color: #14f195; color: #14f195; }
+
+    /* Rarity badges */
+    .am-rarity {
+      font-family: 'Orbitron', monospace; font-size: .55rem; font-weight: 900;
+      letter-spacing: .22em; padding: 2px 8px; border: 1px solid;
+    }
+    .am-rarity-S { color: #ffd700; border-color: #ffd700; text-shadow: 0 0 8px #ffd70088; }
+    .am-rarity-A { color: #f0abfc; border-color: #f0abfc; }
+    .am-rarity-B { color: var(--cyan); border-color: var(--cyan); }
+    .am-rarity-C { color: var(--dim); border-color: var(--dim); }
+
+    /* GUESS tab */
+    .am-guess-layout { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+    @media (max-width: 720px) { .am-guess-layout { grid-template-columns: 1fr; } }
+    .am-guess-canvas-wrap { position: relative; }
+    .am-guess-hint {
+      position: absolute; top: 8px; left: 10px;
+      font-family: 'Share Tech Mono', monospace; font-size: .6rem;
+      color: var(--cyan); letter-spacing: .15em; opacity: .7;
+    }
+    .am-guess-side { display: flex; flex-direction: column; gap: 12px; }
+    .am-score-row { display: flex; align-items: center; gap: 8px; }
+    .am-score-label {
+      font-family: 'Orbitron', monospace; font-size: .52rem; color: var(--dim); letter-spacing: .2em;
+    }
+    .am-score-val {
+      font-family: 'Share Tech Mono', monospace; font-size: 1.3rem; color: var(--cyan); line-height: 1;
+    }
+    .am-options { display: flex; flex-direction: column; gap: 7px; }
+    .am-option {
+      font-family: 'Share Tech Mono', monospace; font-size: .65rem; letter-spacing: .08em;
+      padding: 10px 14px; border: 1px solid var(--border); background: transparent;
+      color: var(--text); cursor: none; text-align: left;
+      transition: border-color .2s, color .2s, background .2s;
+    }
+    .am-option:hover { border-color: var(--cyan); color: var(--cyan); }
+    .am-option.correct  { border-color: #4ade80; color: #4ade80; background: rgba(74,222,128,.07); }
+    .am-option.wrong    { border-color: #f87171; color: #f87171; background: rgba(248,113,113,.07); }
+    .am-option:disabled { pointer-events: none; }
+    .am-reveal {
+      font-family: 'Share Tech Mono', monospace; font-size: .65rem;
+      color: var(--text); line-height: 1.6; min-height: 48px;
+    }
+
+    /* COLLECTION tab */
+    .am-coll-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .am-coll-count {
+      font-family: 'Orbitron', monospace; font-size: .6rem; color: var(--dim); letter-spacing: .2em;
+    }
+    .am-coll-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap: 10px; }
+    .am-coll-card {
+      border: 1px solid var(--border); background: rgba(10,22,40,.6);
+      padding: 8px; cursor: none; transition: border-color .2s, transform .2s;
+      position: relative;
+    }
+    .am-coll-card:hover { border-color: var(--cyan); transform: translateY(-2px); }
+    .am-coll-card canvas { display: block; width: 100%; }
+    .am-coll-card .am-coll-name {
+      font-family: 'Share Tech Mono', monospace; font-size: .5rem;
+      color: var(--dim); margin-top: 5px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .am-coll-card .am-coll-rarity { position: absolute; top: 4px; right: 4px; }
+    .am-coll-card.minted { border-color: var(--gold); }
+    .am-new-badge {
+      position: absolute; top: 4px; left: 4px;
+      font-family: 'Orbitron', monospace; font-size: .42rem; color: var(--cyan);
+      background: rgba(0,245,212,.12); border: 1px solid var(--cyan); padding: 1px 4px;
+      letter-spacing: .1em;
+    }
+    .am-coll-empty {
+      font-family: 'Share Tech Mono', monospace; font-size: .65rem;
+      color: var(--dim); letter-spacing: .1em; padding: 32px 0; text-align: center; line-height: 2;
+    }
+    .am-coll-empty small { font-size: .58rem; opacity: .6; }
+
+    /* Difficulty slider: green (left/easy) → red (right/hard) */
+    #am-difficulty {
+      background: linear-gradient(to right, #22c55e, #facc15, #ef4444);
+    }
+    #am-difficulty::-webkit-slider-thumb { background: #fff; border: 2px solid #ef4444; }
+
+    /* Collection section headers */
+    .am-coll-section-label {
+      font-family: 'Orbitron', monospace; font-size: .6rem; font-weight: 700;
+      color: var(--dim); letter-spacing: .2em; margin: 16px 0 8px; padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Reveal name button in LAB actions */
+    #am-reveal-name-btn {
+      font-family: 'Share Tech Mono', monospace; font-size: .58rem;
+      letter-spacing: .12em; padding: 7px 14px;
+      border: 1px solid var(--border); color: var(--dim);
+      background: transparent; cursor: none; transition: color .2s, border-color .2s;
+    }
+    #am-reveal-name-btn:hover { color: var(--text); border-color: var(--text); }
+    #am-reveal-name-result {
+      font-family: 'Share Tech Mono', monospace; font-size: .6rem;
+      color: var(--cyan); letter-spacing: .1em; min-height: 1.2em;
+    }
+    body.eth-connected #am-reveal-name-result { color: var(--purple); }
+    body.sol-connected #am-reveal-name-result { color: #14f195; }
+
+    /* Wallet identity line in GUESS */
+    #am-wallet-line {
+      font-family: 'Share Tech Mono', monospace; font-size: .55rem;
+      color: var(--dim); letter-spacing: .1em;
+    }
 
   </style>
 </head>
@@ -1374,6 +1718,130 @@
   </div>
 </div>
 
+<!-- ── Anime ASCII Lab Modal ── -->
+<div id="anime-modal" role="dialog" aria-modal="true" aria-labelledby="am-title-label">
+  <div class="am-box">
+    <button class="am-close" id="am-close" aria-label="Close anime lab">×</button>
+    <div class="am-header">
+      <div class="am-title" id="am-title-label">// ANIME ASCII LAB</div>
+      <div class="am-tabs" role="tablist">
+        <button class="am-tab active" id="am-tab-guess"      role="tab" aria-selected="true"  aria-controls="am-panel-guess">GUESS</button>
+        <button class="am-tab"        id="am-tab-lab"        role="tab" aria-selected="false" aria-controls="am-panel-lab">LAB</button>
+        <button class="am-tab"        id="am-tab-collection" role="tab" aria-selected="false" aria-controls="am-panel-collection">COLLECTION</button>
+      </div>
+    </div>
+
+    <!-- LAB TAB -->
+    <div class="am-panel" id="am-panel-lab" role="tabpanel" aria-labelledby="am-tab-lab" hidden>
+      <div class="am-lab-layout">
+        <!-- Canvas display -->
+        <div class="am-canvas-wrap">
+          <div class="am-loading" id="am-loading">
+            <span class="am-loading-text">LOADING CHARACTER...</span>
+          </div>
+          <canvas id="am-canvas" aria-label="Anime character ASCII art"></canvas>
+          <div class="am-scanlines" id="am-scanlines" aria-hidden="true"></div>
+          <div class="am-char-badge" id="am-char-badge" aria-hidden="true"></div>
+        </div>
+
+        <!-- Controls sidebar -->
+        <div class="am-controls">
+          <div class="am-ctrl-section">
+            <div class="am-ctrl-label">DENSITY</div>
+            <input type="range" class="am-slider" id="am-density" min="30" max="140" value="101" aria-label="ASCII density">
+            <div class="am-ctrl-val" id="am-density-val">101</div>
+          </div>
+          <div class="am-ctrl-section">
+            <div class="am-ctrl-label">RAMP</div>
+            <div class="am-ramp-btns" role="group" aria-label="Character ramp">
+              <button class="am-ramp-btn active" data-ramp="standard" aria-pressed="true">STD</button>
+              <button class="am-ramp-btn" data-ramp="blocks"   aria-pressed="false">BLOCK</button>
+              <button class="am-ramp-btn" data-ramp="katakana" aria-pressed="false">カナ</button>
+            </div>
+          </div>
+          <div class="am-ctrl-section">
+            <div class="am-ctrl-label">COLOR</div>
+            <div class="am-ramp-btns" id="am-color-group" role="group" aria-label="Color mode">
+              <button class="am-color-btn" data-color="pixel"  aria-pressed="false">PIXEL</button>
+              <button class="am-color-btn" data-color="matrix" aria-pressed="false">MATRIX</button>
+              <button class="am-color-btn active" data-color="cyan" aria-pressed="true">CYAN</button>
+            </div>
+          </div>
+          <div class="am-ctrl-section">
+            <div class="am-ctrl-label">BRIGHTNESS</div>
+            <input type="range" class="am-slider" id="am-brightness" min="-80" max="80" value="0" aria-label="Brightness">
+          </div>
+          <div class="am-ctrl-section">
+            <div class="am-ctrl-label">CONTRAST</div>
+            <input type="range" class="am-slider" id="am-contrast" min="-80" max="80" value="0" aria-label="Contrast">
+          </div>
+          <div class="am-ctrl-section">
+            <div class="am-ctrl-label">GLOW</div>
+            <input type="range" class="am-slider" id="am-glow" min="0" max="20" value="4" aria-label="Glow intensity">
+          </div>
+          <div class="am-ctrl-section am-toggles">
+            <label class="am-toggle"><input type="checkbox" id="am-invert" aria-label="Invert"><span>INVERT</span></label>
+            <label class="am-toggle"><input type="checkbox" id="am-crt"    aria-label="CRT scanlines"><span>CRT</span></label>
+            <label class="am-toggle"><input type="checkbox" id="am-flicker" aria-label="Matrix flicker"><span>FLICKER</span></label>
+          </div>
+          <div class="am-actions">
+            <button class="am-btn-primary" id="am-new-pull">⟳ NEW PULL</button>
+            <button class="am-btn-ghost"   id="am-copy-text">COPY TEXT</button>
+            <button class="am-btn-ghost"   id="am-export-png">EXPORT PNG</button>
+            <button id="am-reveal-name-btn">⚠ REVEAL NAME</button>
+            <div id="am-reveal-name-result"></div>
+            <button class="am-btn-mint"    id="am-mint-btn">🔒 CONNECT WALLET</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUESS TAB -->
+    <div class="am-panel active" id="am-panel-guess" role="tabpanel" aria-labelledby="am-tab-guess">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--dim);letter-spacing:.1em;margin-bottom:10px">// Tip: remix any character in the LAB tab</div>
+      <div class="am-guess-layout">
+        <div class="am-guess-canvas-wrap">
+          <canvas id="am-guess-canvas" aria-label="Anime character to guess"></canvas>
+          <div class="am-guess-hint" id="am-guess-hint" aria-hidden="true">// WHO IS THIS?</div>
+        </div>
+        <div class="am-guess-side">
+          <div id="am-wallet-line">// GUEST</div>
+          <div class="am-score-row">
+            <span class="am-score-label">STREAK</span>
+            <span class="am-score-val" id="am-streak">0</span>
+            <span class="am-score-label" style="margin-left:16px">BEST</span>
+            <span class="am-score-val" id="am-best">0</span>
+          </div>
+          <div class="am-options" id="am-options" role="group" aria-label="Answer choices"></div>
+          <div class="am-reveal" id="am-reveal" aria-live="polite"></div>
+          <button class="am-btn-primary" id="am-next-guess" style="display:none">NEXT →</button>
+          <div class="am-ctrl-section" style="margin-top:18px">
+            <div class="am-ctrl-label">DIFFICULTY · left = easy</div>
+            <input type="range" class="am-slider" id="am-difficulty" min="30" max="100" value="65" aria-label="Difficulty">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLLECTION TAB -->
+    <div class="am-panel" id="am-panel-collection" role="tabpanel" aria-labelledby="am-tab-collection" hidden>
+      <div class="am-coll-header">
+        <span class="am-coll-count" id="am-coll-count">0 COLLECTED</span>
+        <button class="am-btn-ghost" id="am-coll-clear">CLEAR ALL</button>
+      </div>
+      <div id="am-coll-minted-section" style="display:none">
+        <div class="am-coll-section-label">◆ MINTED</div>
+        <div class="am-coll-grid" id="am-coll-grid-minted" aria-label="Minted anime characters"></div>
+      </div>
+      <div id="am-coll-guessed-section" style="display:none">
+        <div class="am-coll-section-label">✓ CORRECTLY GUESSED</div>
+        <div class="am-coll-grid" id="am-coll-grid-guessed" aria-label="Correctly guessed anime characters"></div>
+      </div>
+      <div class="am-coll-empty" id="am-coll-empty">// NO CHARACTERS COLLECTED YET<br><small>Guess correctly or mint to start your collection.</small></div>
+    </div>
+  </div>
+</div>
+
 <!-- Mobile nav overlay -->
 <div class="mobile-nav-overlay" id="mobile-nav-overlay" role="dialog" aria-modal="true">
   <a href="#about"      onclick="closeMobileNav()"><span class="mnav-num">01.</span>ABOUT</a>
@@ -1391,8 +1859,10 @@
 <section id="hero">
   <!-- Mystery floating symbol — click to open wallet modal -->
   <div id="mystery-symbol" aria-hidden="true" role="presentation">?</div>
+  <!-- Anime mystery symbol — click to open the Anime ASCII Lab -->
+  <div id="anime-symbol" role="button" tabindex="0" aria-label="Open anime ASCII lab" title="?">忍</div>
   <div class="hero-content">
-    <div class="hero-badge">Associate Software Engineer</div>
+    <div class="hero-badge">Blockchain · AI · Full-Stack Engineer</div>
 
     <h1 class="hero-name">
       <span class="glitch" data-text="NIKHIL">NIKHIL</span>
@@ -1400,13 +1870,13 @@
     </h1>
 
     <div class="hero-role">
-      <span class="typewriter">Backend · AI/ML · Full-Stack · Computer Vision</span>
+      <span class="typewriter">Blockchain · Backend · AI/ML · Full-Stack</span>
     </div>
 
     <p class="hero-desc">
-      Building scalable enterprise systems and AI-driven platforms.
-      From policy lifecycle engines to underwater neural networks —
-      engineering that ships.
+      I build at the intersection of blockchain, AI, and full-stack —
+      from on-chain insurance protocols on Solana to neural networks for marine research.
+      Systems that ship and settle.
     </p>
 
     <div class="hero-cta">
@@ -1417,20 +1887,20 @@
 
     <div class="hero-stats">
       <div>
-        <span class="stat-number" data-target="30" data-suffix="%">0%</span>
-        <span class="stat-label">DB Performance Gain</span>
+        <span class="stat-number" data-target="15" data-suffix="+">0</span>
+        <span class="stat-label">Repositories</span>
+      </div>
+      <div>
+        <span class="stat-number" data-target="2" data-suffix="">0</span>
+        <span class="stat-label">Chains Shipped On</span>
+      </div>
+      <div>
+        <span class="stat-number" data-target="7" data-suffix="">0</span>
+        <span class="stat-label">Languages</span>
       </div>
       <div>
         <span class="stat-number" data-target="92" data-suffix="%">0%</span>
-        <span class="stat-label">AI Model Accuracy</span>
-      </div>
-      <div>
-        <span class="stat-number" data-target="5000" data-suffix="+">0</span>
-        <span class="stat-label">Images Processed</span>
-      </div>
-      <div>
-        <span class="stat-number" data-target="50" data-suffix="%">0%</span>
-        <span class="stat-label">Critical Workflows Covered</span>
+        <span class="stat-label">Model Accuracy</span>
       </div>
     </div>
   </div>
@@ -1446,9 +1916,9 @@
     <div class="about-grid">
 
       <div class="about-text anim-left">
-        <p>I'm an <strong>Associate Software Engineer</strong> at OneShield India, building and optimising enterprise SaaS workflows for Property &amp; Casualty insurers. My day-to-day spans backend engineering, PL/SQL performance tuning, and automated regression frameworks.</p>
-        <p>My most significant project is an end-to-end <strong>AI platform</strong> built with the National Institute of Oceanography — training YOLOv9 on 5,000+ underwater images to detect coral and sponge species with <strong>92% accuracy</strong>.</p>
-        <p>I operate at the intersection of <strong>performance engineering</strong> and <strong>machine learning</strong>: systems that are both fast and intelligent.</p>
+        <p>I build on-chain. <strong>MYRMEX</strong> is my flagship — a decentralized parametric insurance protocol on Solana where USDC settles the instant an oracle confirms a trigger event. No claims, no adjusters, no delay. Rust + Anchor smart contracts, a 6-model actuarial pricing engine, and a governance timelock from scratch.</p>
+        <p>My range runs wider than one chain. At the <strong>National Institute of Oceanography</strong> I trained YOLOv9 on 5,000+ underwater images and hit <strong>92% accuracy</strong> detecting coral and sponge species — the kind of domain problem that demands custom data pipelines and careful model design.</p>
+        <p>The backend depth comes from <strong>OneShield India</strong>, where I tune PL/SQL for P&amp;C insurance SaaS at scale. That foundation is what makes the on-chain and AI work production-grade, not just prototype-grade.</p>
       </div>
 
       <div class="anim-right">
@@ -1463,7 +1933,7 @@
           </div>
           <div class="holo-label">// DOMAIN</div>
           <div class="holo-value" style="font-size:.88rem; margin-bottom:20px">
-            Backend · AI/ML · Full-Stack<br>Computer Vision · Oracle DB
+            Blockchain · AI/ML · Full-Stack<br>Solana · Smart Contracts · CV
           </div>
           <div class="holo-divider"></div>
           <div class="holo-label" style="margin-bottom:10px">// STATUS</div>
@@ -1495,6 +1965,8 @@
           <span class="chip">Java</span>
           <span class="chip">C / C++</span>
           <span class="chip">JavaScript</span>
+          <span class="chip">Solidity</span>
+          <span class="chip">Rust</span>
         </div>
       </div>
 
@@ -1522,6 +1994,17 @@
           <span class="chip">PyTorch</span>
           <span class="chip">YOLOv9</span>
           <span class="chip">OpenCV</span>
+        </div>
+      </div>
+
+      <div class="skill-cat anim-up" style="animation-delay:.4s">
+        <div class="skill-cat-title">⬡ BLOCKCHAIN / WEB3</div>
+        <div class="skill-chips">
+          <span class="chip">Solana</span>
+          <span class="chip">Anchor</span>
+          <span class="chip">ethers.js</span>
+          <span class="chip">Foundry</span>
+          <span class="chip">Web3.js</span>
         </div>
       </div>
 
@@ -1633,19 +2116,23 @@
       <!-- Card 2 -->
       <div class="tear-card anim-up" style="animation-delay:.15s">
         <div class="tear-top">
-          <div class="card-icon">⚙️</div>
-          <div class="card-title">ENTERPRISE POLICY LIFECYCLE ENGINE</div>
-          <div class="card-sub">OneShield Enterprise · 2024 – 2025</div>
+          <div class="card-icon">🐜</div>
+          <div class="card-title">MYRMEX — DECENTRALIZED PARAMETRIC INSURANCE</div>
+          <div class="card-sub">Solana · Anchor · Rust · 2025</div>
+          <a href="https://myrmex-iota.vercel.app" target="_blank" rel="noopener" style="display:inline-block;margin:.5rem 0 .25rem;font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--cyan);letter-spacing:.08em;text-decoration:none;opacity:.9">↗ LIVE DEMO</a>
           <p class="card-desc">
-            Optimised business-critical workflows for a large-scale P&amp;C insurance SaaS platform.
-            Database performance tuning, PL/SQL development, and end-to-end regression automation.
+            On-chain parametric insurance that pays out the instant an oracle confirms a trigger event —
+            no claims, no adjusters. USDC settles in a single Solana block. Risk pools, a 6-model actuarial
+            pricing engine, and a governance timelock.
           </p>
           <div class="card-tags">
-            <span class="tag">PL/SQL</span>
-            <span class="tag">Oracle DB</span>
-            <span class="tag">Java</span>
-            <span class="tag">Cucumber</span>
-            <span class="tag">Gherkin</span>
+            <span class="tag">Rust</span>
+            <span class="tag">Anchor</span>
+            <span class="tag">Solana</span>
+            <span class="tag">Next.js</span>
+            <span class="tag">TypeScript</span>
+            <span class="tag">FastAPI</span>
+            <span class="tag">Node.js</span>
           </div>
         </div>
 
@@ -1653,18 +2140,18 @@
           <svg viewBox="0 0 400 28" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
             <path class="tear-path tear-path-upper"
               d="M0,10 Q30,22 60,10 Q90,0 120,14 Q150,24 180,8 Q210,0 240,16 Q270,24 300,8 Q330,0 360,14 Q385,22 400,12"
-              fill="none" stroke="rgba(124,58,237,0.35)" stroke-width="1"/>
+              fill="none" stroke="rgba(20,241,149,0.35)" stroke-width="1"/>
             <path d="M0,28 L400,28 L400,12 Q385,22 360,14 Q330,0 300,8 Q270,24 240,16 Q210,0 180,8 Q150,24 120,14 Q90,0 60,10 Q30,22 0,10 Z"
-              fill="rgba(124,58,237,0.05)"/>
+              fill="rgba(20,241,149,0.05)"/>
           </svg>
         </div>
 
         <div class="tear-bottom">
           <div class="metrics">
-            <div class="metric"><span class="metric-v">30%</span><span class="metric-l">Perf Gain</span></div>
-            <div class="metric"><span class="metric-v">50%</span><span class="metric-l">Critical Coverage</span></div>
-            <div class="metric"><span class="metric-v">12hr</span><span class="metric-l">Saved / Week</span></div>
-            <div class="metric"><span class="metric-v">30+</span><span class="metric-l">Test Scenarios</span></div>
+            <div class="metric"><span class="metric-v">16+</span><span class="metric-l">Instructions</span></div>
+            <div class="metric"><span class="metric-v">11</span><span class="metric-l">Tests Passing</span></div>
+            <div class="metric"><span class="metric-v">6</span><span class="metric-l">Risk Models</span></div>
+            <div class="metric"><span class="metric-v">400ms</span><span class="metric-l">Settlement</span></div>
           </div>
         </div>
       </div>
@@ -1716,6 +2203,8 @@
     <h2 class="section-title">EDUCATION.ROOT</h2>
     <div class="edu-wrap anim-up">
       <div class="edu-card">
+        <div class="edu-card-shine"></div>
+        <div class="edu-card-border"></div>
         <div class="edu-degree">B.E. in Computer Engineering</div>
         <div class="edu-honours">Honours in Artificial Intelligence &amp; Machine Learning</div>
         <div class="edu-school">Don Bosco College of Engineering</div>
@@ -2686,6 +3175,854 @@ function openEmail() {
   startSymbolCycle();
   restore();   /* restore theme + address from localStorage before first paint */
 
+})();
+
+/* ══════════════════════════════════════════════════
+   ANIME ASCII LAB
+   Shares read-only access to wallet state via LS_KEY.
+══════════════════════════════════════════════════ */
+(function AnimeAsciiLab() {
+
+  /* ─── Constants ─── */
+  const LS_SCORE  = 'nr_anime_score';
+  const LS_COLL   = 'nr_anime_collection';
+  const LS_WALLET = 'nr_wallet';
+  const LS_EXCL   = 'nr_anime_excluded';
+  const ANIME_GLYPHS = ['忍','火','斬','月','◉','☠','⚔','⛩','刀','鬼'];
+  const RAMPS = {
+    standard: ' .:-=+*#%@',
+    blocks:   ' ░▒▓█',
+    katakana: ' ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶﾕﾗｾﾈｽﾀﾇﾍｦｲｸｺｿﾁﾌﾤ'
+  };
+  const RARITY = [
+    { tier: 'S', min: 40000 },
+    { tier: 'A', min: 15000 },
+    { tier: 'B', min: 5000  },
+    { tier: 'C', min: 0     }
+  ];
+  const ANILIST_URL = 'https://graphql.anilist.co';
+  const GQL = `query($p:Int){Page(page:$p,perPage:25){characters(sort:FAVOURITES_DESC){id name{full}favourites image{large}media(perPage:1,sort:POPULARITY_DESC){nodes{title{romaji}type}}}}}`;
+
+  /* ─── State ─── */
+  let _animeGlyphIdx = 0;
+  let _animeGlyphTimer = null;
+  let _currentChar   = null;   /* { id, name, source, image, favourites, tier } */
+  let _distractors   = [];     /* other chars from same page pull */
+  let _cachedPixels  = null;   /* ImageData from offscreen canvas */
+  let _rafId         = null;
+  let _flickerTimer  = null;
+  let _guessAnswered = false;
+
+  /* Controls state */
+  let _ctrl = { density:101, ramp:'standard', color:'cyan', brightness:0, contrast:0, glow:4, invert:false, crt:false, flicker:false };
+
+  /* ─── Element refs ─── */
+  const animeSymbol   = document.getElementById('anime-symbol');
+  const animeModal    = document.getElementById('anime-modal');
+  const amClose       = document.getElementById('am-close');
+  const amCanvas      = document.getElementById('am-canvas');
+  const amGuessCanvas = document.getElementById('am-guess-canvas');
+  const amLoading     = document.getElementById('am-loading');
+  const amCharBadge   = document.getElementById('am-char-badge');
+  const amScanlines   = document.getElementById('am-scanlines');
+  const amOptions     = document.getElementById('am-options');
+  const amReveal      = document.getElementById('am-reveal');
+  const amNextGuess   = document.getElementById('am-next-guess');
+  const amCollEmpty   = document.getElementById('am-coll-empty');
+  const amCollCount   = document.getElementById('am-coll-count');
+  const amStreakEl    = document.getElementById('am-streak');
+  const amBestEl      = document.getElementById('am-best');
+  const amMintBtn     = document.getElementById('am-mint-btn');
+
+  /* ─── Wallet read (read-only from localStorage) ─── */
+  function getWallet() {
+    try { return JSON.parse(localStorage.getItem(LS_WALLET)) || {}; } catch { return {}; }
+  }
+
+  /* ─── Rarity ─── */
+  function getRarity(favs) {
+    for (const r of RARITY) if (favs >= r.min) return r.tier;
+    return 'C';
+  }
+
+  /* ─── AniList fetch ─── */
+  async function fetchPage(attempt) {
+    const page = Math.floor(Math.random() * 40) + 1;
+    const res = await fetch(ANILIST_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ query: GQL, variables: { p: page } })
+    });
+    if (!res.ok) throw new Error('AniList error');
+    const json = await res.json();
+    return json.data.Page.characters.filter(c =>
+      c.image?.large && !c.image.large.includes('default')
+    );
+  }
+
+  async function fetchRandomCharacter() {
+    showLoading(true);
+    let chars;
+    try {
+      chars = await fetchPage();
+      if (!chars.length) chars = await fetchPage(); /* one retry */
+    } catch {
+      showLoading(false);
+      showError('// ANILIST UNAVAILABLE — TRY AGAIN');
+      return;
+    }
+    /* Prefer a non-excluded character as the target */
+    const nonExcl = chars.filter(c => !isExcluded(c.id));
+    const pool = nonExcl.length ? nonExcl : chars;
+    const idx  = Math.floor(Math.random() * pool.length);
+    const raw  = pool[idx];
+    /* distractors: all chars except target (may include excluded) */
+    const rest = chars.filter(c => c.id !== raw.id);
+    _distractors = rest;
+    _currentChar = {
+      id:         raw.id,
+      name:       raw.name.full,
+      source:     raw.media?.nodes?.[0]?.title?.romaji || '???',
+      image:      raw.image.large,
+      favourites: raw.favourites,
+      tier:       getRarity(raw.favourites)
+    };
+    _cachedPixels = null;
+    await loadAndRender(_currentChar.image);
+    updateMintBtn();
+    /* NOTE: no auto-addToCollection here — only correct guesses and mints add to collection */
+  }
+
+  /* ─── Image → offscreen canvas → cached pixels ─── */
+  function loadAndRender(url) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const off = document.createElement('canvas');
+        const cols = _ctrl.density;
+        const charAspect = 0.5;
+        const rows = Math.round(cols * (img.naturalHeight / img.naturalWidth) * charAspect);
+        off.width  = cols;
+        off.height = rows;
+        const ctx = off.getContext('2d');
+        ctx.drawImage(img, 0, 0, cols, rows);
+        try {
+          _cachedPixels = ctx.getImageData(0, 0, cols, rows);
+        } catch {
+          _cachedPixels = null;
+        }
+        /* Single rAF renders BOTH canvases so _rafId cancellation doesn't drop the LAB canvas */
+        requestAnimationFrame(() => {
+          _doRender(amCanvas);
+          _doRender(amGuessCanvas);
+          /* Badge shows rarity only (anti-cheat #3) unless char is revealed */
+          if (amCharBadge) {
+            if (_currentChar?._revealed) {
+              amCharBadge.textContent = `${_currentChar.name} · ${_currentChar.source}`;
+            } else {
+              amCharBadge.textContent = `??? · ${_currentChar?.tier || '?'}`;
+            }
+          }
+          showLoading(false);
+          resolve();
+        });
+      };
+      img.onerror = () => { showLoading(false); showError('// IMAGE LOAD FAILED'); resolve(); };
+      img.src = url;
+    });
+  }
+
+  /* ─── ASCII render to canvas ─── */
+  function renderASCII(canvasEl) {
+    if (!_cachedPixels || !canvasEl) return;
+    cancelAnimationFrame(_rafId);
+    _rafId = requestAnimationFrame(() => _doRender(canvasEl));
+  }
+
+  function _doRender(canvasEl) {
+    if (!_cachedPixels) return;
+    const ramp  = RAMPS[_ctrl.ramp] || RAMPS.standard;
+    const cols  = _cachedPixels.width;
+    const rows  = _cachedPixels.height;
+    const data  = _cachedPixels.data;
+    const fontSize = Math.max(6, Math.floor(700 / cols));
+    canvasEl.width  = cols * fontSize;
+    canvasEl.height = rows * fontSize * 1.15;
+    const ctx = canvasEl.getContext('2d');
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
+    ctx.font = `${fontSize}px 'Share Tech Mono', monospace`;
+    ctx.textBaseline = 'top';
+
+    const { chain } = getWallet();
+    const themeColor = chain === 'eth' ? '#7c3aed' : chain === 'sol' ? '#14f195' : '#00f5d4';
+
+    /* Flicker: per-frame random global alpha multiplier + glyph blank chance */
+    const flickerAlpha = _ctrl.flicker ? (0.82 + Math.random() * 0.18) : 1.0;
+    const flickerBlank = _ctrl.flicker ? 0.05 : 0; /* 5% chance to blank a glyph */
+
+    /* Glow: scale shadowBlur so the slider visibly blooms (×3 multiplier) */
+    const glowBlur = _ctrl.glow * 3;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        /* Flicker: randomly blank some glyphs each frame */
+        if (flickerBlank > 0 && Math.random() < flickerBlank) continue;
+
+        const i = (r * cols + c) * 4;
+        let R = data[i], G = data[i+1], B = data[i+2];
+        /* brightness + contrast */
+        const bright = _ctrl.brightness;
+        const cont   = _ctrl.contrast;
+        R = clamp(((R + bright - 128) * (1 + cont/80) + 128));
+        G = clamp(((G + bright - 128) * (1 + cont/80) + 128));
+        B = clamp(((B + bright - 128) * (1 + cont/80) + 128));
+        let lum = 0.299*R + 0.587*G + 0.114*B;
+        if (_ctrl.invert) lum = 255 - lum;
+        const charIdx = Math.floor((lum / 255) * (ramp.length - 1));
+        const ch = ramp[charIdx] || ' ';
+
+        /* color — apply flicker alpha multiplier */
+        let color;
+        const baseAlpha = (0.3 + (lum/255)*0.7) * flickerAlpha;
+        if (_ctrl.color === 'pixel') {
+          color = `rgba(${R},${G},${B},${baseAlpha.toFixed(2)})`;
+        } else if (_ctrl.color === 'matrix') {
+          const v = Math.floor(lum);
+          color = `rgba(0,${v},0,${baseAlpha.toFixed(2)})`;
+        } else if (_ctrl.color === 'cyan') {
+          color = `rgba(0,245,212,${baseAlpha.toFixed(2)})`;
+        } else {
+          /* theme */
+          color = hexToRgba(themeColor, parseFloat(baseAlpha.toFixed(2)));
+        }
+
+        /* Glow: use full-alpha shadow so bloom is clearly visible */
+        if (glowBlur > 0) {
+          ctx.shadowColor = _ctrl.color === 'pixel' ? `rgb(${R},${G},${B})`
+                          : _ctrl.color === 'matrix' ? `rgb(0,${Math.floor(lum)},0)`
+                          : _ctrl.color === 'cyan'   ? '#00f5d4'
+                          : themeColor;
+          ctx.shadowBlur = glowBlur;
+        } else {
+          ctx.shadowBlur = 0;
+        }
+        ctx.fillStyle = color;
+        ctx.fillText(ch, c * fontSize, r * fontSize * 1.15);
+      }
+    }
+  }
+
+  /* ─── Helpers ─── */
+  function clamp(v) { return Math.min(255, Math.max(0, Math.round(v))); }
+  function hexToRgba(hex, a) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+  function showLoading(on) { amLoading?.classList.toggle('hidden', !on); }
+  function showError(msg) {
+    if (!amCanvas) return;
+    const ctx = amCanvas.getContext('2d');
+    amCanvas.width = 400; amCanvas.height = 120;
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,400,120);
+    ctx.font = "12px 'Share Tech Mono',monospace";
+    ctx.fillStyle = '#f87171'; ctx.fillText(msg, 20, 55);
+  }
+
+  /* ─── Flicker animation ─── */
+  function startFlicker() {
+    if (_flickerTimer) return;
+    _flickerTimer = setInterval(() => { if (_cachedPixels) _doRender(amCanvas); }, 120);
+  }
+  function stopFlicker() { clearInterval(_flickerTimer); _flickerTimer = null; }
+
+  /* ─── Anime symbol glyph cycling ─── */
+  function startAnimeGlyphCycle() {
+    if (_animeGlyphTimer) return;
+    _animeGlyphTimer = setInterval(() => {
+      _animeGlyphIdx = (_animeGlyphIdx + 1) % ANIME_GLYPHS.length;
+      if (animeSymbol) {
+        animeSymbol.textContent = ANIME_GLYPHS[_animeGlyphIdx];
+        animeSymbol.setAttribute('title', ANIME_GLYPHS[_animeGlyphIdx]);
+      }
+    }, 2500);
+  }
+
+  /* ─── Wallet color button (WALLET btn only shown when connected) ─── */
+  function updateWalletColorBtn() {
+    const group = document.getElementById('am-color-group');
+    if (!group) return;
+    const { chain } = getWallet();
+    let walletBtn = group.querySelector('[data-color="theme"]');
+    if (chain) {
+      if (!walletBtn) {
+        walletBtn = document.createElement('button');
+        walletBtn.className = 'am-color-btn';
+        walletBtn.dataset.color = 'theme';
+        walletBtn.setAttribute('aria-pressed', 'false');
+        walletBtn.textContent = 'WALLET';
+        /* Wire click the same way as other color buttons */
+        walletBtn.addEventListener('click', () => {
+          group.querySelectorAll('.am-color-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+          walletBtn.classList.add('active'); walletBtn.setAttribute('aria-pressed','true');
+          _ctrl.color = 'theme';
+          renderASCII(amCanvas);
+        });
+        group.appendChild(walletBtn);
+      }
+      walletBtn.style.display = '';
+    } else if (walletBtn) {
+      walletBtn.style.display = 'none';
+      /* If WALLET was active and wallet disconnected, revert to cyan */
+      if (_ctrl.color === 'theme') {
+        _ctrl.color = 'cyan';
+        group.querySelectorAll('.am-color-btn').forEach(b => {
+          const active = b.dataset.color === 'cyan';
+          b.classList.toggle('active', active);
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+      }
+    }
+  }
+
+  /* ─── Wallet identity line in GUESS ─── */
+  function updateWalletLine() {
+    const el = document.getElementById('am-wallet-line');
+    if (!el) return;
+    const { chain, address } = getWallet();
+    if (chain && address) {
+      const short = address.slice(0,6) + '...' + address.slice(-4);
+      const icon  = chain === 'eth' ? '◈' : chain === 'sol' ? '◎' : '◆';
+      el.textContent = `${icon} ${short} · ${chain.toUpperCase()}`;
+    } else {
+      el.textContent = '// GUEST';
+    }
+  }
+
+  /* ─── Modal open/close ─── */
+  function openAnimeModal() {
+    if (!animeModal) return;
+    animeModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    updateMintBtn();
+    updateWalletColorBtn();
+    updateWalletLine();
+    renderCollection();
+    updateScoreDisplay();
+    /* Fix #6: default to GUESS tab; fetch fresh char if needed or if current is revealed/excluded */
+    const needFresh = !_currentChar || _currentChar._revealed || isExcluded(_currentChar.id);
+    if (needFresh) {
+      fetchRandomCharacter().then(() => switchTab('guess'));
+    } else {
+      switchTab('guess');
+    }
+  }
+  function closeAnimeModal() {
+    if (!animeModal) return;
+    animeModal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  /* ─── Tabs ─── */
+  function switchTab(name) {
+    document.querySelectorAll('.am-tab').forEach(t => {
+      const active = t.id === `am-tab-${name}`;
+      t.classList.toggle('active', active);
+      t.setAttribute('aria-selected', active);
+    });
+    document.querySelectorAll('.am-panel').forEach(p => {
+      const active = p.id === `am-panel-${name}`;
+      p.classList.toggle('active', active);
+      p.hidden = !active;
+    });
+    /* Per-tab title label (#6) */
+    const titleEl = document.getElementById('am-title-label');
+    if (titleEl) {
+      titleEl.textContent = name === 'guess'      ? '// ANIME GUESSING CHALLENGE'
+                          : name === 'lab'        ? '// ANIME ASCII LAB'
+                          : name === 'collection' ? '// ANIME CHARS COLLECTION'
+                          : titleEl.textContent;
+    }
+    if (name === 'guess') {
+      /* Anti-cheat #3/#6: if current char is revealed or excluded, fetch a fresh one */
+      const needFresh = !_currentChar || _currentChar._revealed || isExcluded(_currentChar.id);
+      if (needFresh) {
+        fetchRandomCharacter().then(() => setupGuess());
+      } else {
+        setupGuess();
+      }
+    }
+  }
+
+  /* ─── Controls wiring ─── */
+  function wireControls() {
+    const density = document.getElementById('am-density');
+    if (density) density.addEventListener('input', () => {
+      _ctrl.density = +density.value;
+      document.getElementById('am-density-val').textContent = density.value;
+      if (_currentChar) loadAndRender(_currentChar.image);
+    });
+
+    ['am-brightness','am-contrast','am-glow'].forEach(id => {
+      const el = document.getElementById(id);
+      const key = id.replace('am-','');
+      if (el) el.addEventListener('input', () => { _ctrl[key] = +el.value; renderASCII(amCanvas); });
+    });
+
+    document.querySelectorAll('.am-ramp-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.am-ramp-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+        btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
+        _ctrl.ramp = btn.dataset.ramp;
+        renderASCII(amCanvas);
+      });
+    });
+
+    document.querySelectorAll('.am-color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.am-color-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+        btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
+        _ctrl.color = btn.dataset.color;
+        renderASCII(amCanvas);
+      });
+    });
+
+    const invertEl = document.getElementById('am-invert');
+    if (invertEl) invertEl.addEventListener('change', () => { _ctrl.invert = invertEl.checked; renderASCII(amCanvas); });
+
+    const crtEl = document.getElementById('am-crt');
+    if (crtEl) crtEl.addEventListener('change', () => {
+      _ctrl.crt = crtEl.checked;
+      amScanlines?.classList.toggle('on', crtEl.checked);
+    });
+
+    const flickerEl = document.getElementById('am-flicker');
+    if (flickerEl) flickerEl.addEventListener('change', () => {
+      _ctrl.flicker = flickerEl.checked;
+      _ctrl.flicker ? startFlicker() : stopFlicker();
+    });
+
+    document.getElementById('am-new-pull')?.addEventListener('click', fetchRandomCharacter);
+    document.getElementById('am-copy-text')?.addEventListener('click', copyText);
+    document.getElementById('am-export-png')?.addEventListener('click', exportPNG);
+    if (amMintBtn) amMintBtn.addEventListener('click', mintCard);
+
+    document.getElementById('am-difficulty')?.addEventListener('input', e => {
+      /* Fix #8: invert so left=easy(high density), right=hard(low density) */
+      const el  = e.target;
+      const min = +el.min, max = +el.max;
+      _ctrl.density = (min + max) - +el.value;
+      if (_currentChar && _guessAnswered === false) loadAndRender(_currentChar.image);
+    });
+
+    /* Fix #3: REVEAL NAME button */
+    document.getElementById('am-reveal-name-btn')?.addEventListener('click', () => {
+      if (!_currentChar) return;
+      _currentChar._revealed = true;
+      addExcluded(_currentChar.id);
+      if (amCharBadge) amCharBadge.textContent = `${_currentChar.name} · ${_currentChar.source}`;
+      const resultEl = document.getElementById('am-reveal-name-result');
+      if (resultEl) resultEl.textContent = `// ${_currentChar.name} · ${_currentChar.source}`;
+    });
+
+    document.getElementById('am-next-guess')?.addEventListener('click', () => {
+      if (amNextGuess) amNextGuess.style.display = 'none';
+      fetchRandomCharacter().then(() => setupGuess());
+    });
+
+    document.getElementById('am-coll-clear')?.addEventListener('click', () => {
+      if (confirm('Clear your entire collection?')) {
+        localStorage.removeItem(LS_COLL);
+        renderCollection();
+      }
+    });
+
+    document.querySelectorAll('.am-tab').forEach(tab => {
+      tab.addEventListener('click', () => switchTab(tab.id.replace('am-tab-','')));
+    });
+  }
+
+  /* ─── Copy text ─── */
+  function copyText() {
+    if (!_cachedPixels) return;
+    const ramp = RAMPS[_ctrl.ramp] || RAMPS.standard;
+    const cols = _cachedPixels.width, rows = _cachedPixels.height;
+    const data = _cachedPixels.data;
+    let out = '';
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const i = (r*cols+c)*4;
+        let lum = 0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
+        if (_ctrl.invert) lum = 255-lum;
+        out += ramp[Math.floor((lum/255)*(ramp.length-1))] || ' ';
+      }
+      out += '\n';
+    }
+    navigator.clipboard.writeText(out).catch(() => {});
+    const btn = document.getElementById('am-copy-text');
+    if (btn) { btn.textContent = 'COPIED!'; setTimeout(() => { btn.textContent = 'COPY TEXT'; }, 1800); }
+  }
+
+  /* ─── Export PNG ─── */
+  function exportPNG() {
+    if (!amCanvas) return;
+    try {
+      const url = amCanvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ASCII_${(_currentChar?.name||'anime').replace(/\s/g,'_')}.png`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    } catch { alert('Export failed — canvas tainted?'); }
+  }
+
+  /* ─── Mint SVG card ─── */
+  async function mintCard() {
+    /* Re-read wallet at click time */
+    const { chain, address } = getWallet();
+    if (!chain || !address) {
+      /* Show brief inline feedback then open wallet modal */
+      if (amMintBtn) { amMintBtn.textContent = '→ CONNECT WALLET FIRST'; }
+      setTimeout(() => {
+        document.getElementById('wallet-modal')?.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        updateMintBtn();
+      }, 600);
+      return;
+    }
+    if (!_currentChar) return;
+    if (!_cachedPixels) { if (amMintBtn) { amMintBtn.textContent = '⚠ NO IMAGE'; setTimeout(() => updateMintBtn(), 1500); } return; }
+    if (amMintBtn) { amMintBtn.textContent = '⏳ MINTING...'; amMintBtn.disabled = true; }
+    try {
+      const raw    = new TextEncoder().encode(_currentChar.id + address + Date.now());
+      const digest = await crypto.subtle.digest('SHA-256', raw);
+      const token  = Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+
+      const accent = chain === 'eth' ? '#7c3aed' : '#14f195';
+      const ramp   = RAMPS[_ctrl.ramp] || RAMPS.standard;
+      const cols   = _cachedPixels?.width || 70;
+      const rows   = _cachedPixels?.height || 40;
+      const data   = _cachedPixels?.data;
+      let asciiLines = [];
+      if (data) {
+        for (let r = 0; r < rows; r++) {
+          let line = '';
+          for (let c = 0; c < cols; c++) {
+            const i = (r*cols+c)*4;
+            let lum = 0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
+            if (_ctrl.invert) lum = 255-lum;
+            line += ramp[Math.floor((lum/255)*(ramp.length-1))]||' ';
+          }
+          asciiLines.push(line);
+        }
+      }
+
+      const fSize = 7;
+      const svgW  = cols * fSize + 40;
+      const svgH  = rows * fSize * 1.15 + 120;
+      const textRows = asciiLines.map((line,i) =>
+        `<text x="20" y="${20 + i*fSize*1.15}" fill="${accent}" font-size="${fSize}">${escXml(line)}</text>`
+      ).join('');
+
+      const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}" style="background:#020817;font-family:'Share Tech Mono',monospace">
+  <rect width="${svgW}" height="${svgH}" fill="#020817"/>
+  <rect x="1" y="1" width="${svgW-2}" height="${svgH-2}" fill="none" stroke="${accent}" stroke-width="1" opacity="0.6"/>
+  ${textRows}
+  <text x="20" y="${svgH-56}" fill="${accent}" font-size="8" opacity="0.8">${escXml(_currentChar.name)} · ${escXml(_currentChar.source)}</text>
+  <text x="20" y="${svgH-42}" fill="${accent}" font-size="7" opacity="0.5">RARITY: ${_currentChar.tier} · FAV: ${_currentChar.favourites}</text>
+  <text x="20" y="${svgH-28}" fill="${accent}" font-size="7" opacity="0.5">CHAIN: ${chain.toUpperCase()} · TOKEN: ${token.slice(0,16)}...</text>
+  <text x="20" y="${svgH-14}" fill="${accent}" font-size="7" opacity="0.35">ISSUED: ${new Date().toISOString()}</text>
+  <!--
+    %%ANIME-CARD-SIGNATURE
+    %%WALLET:${address}
+    %%CHAIN:${chain.toUpperCase()}
+    %%CHARACTER:${_currentChar.id}
+    %%TOKEN:${token}
+    %%ISSUED:${new Date().toISOString()}
+    %%END-SIGNATURE
+  -->
+</svg>`;
+
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url;
+      a.download = `AnimeCard_${(_currentChar.name||'anime').replace(/\s/g,'_')}_${token.slice(0,8)}.svg`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      /* upsert collection entry with minted flag + exclude from future guesses */
+      upsertCollection(_currentChar, { minted: true, mintedToken: token });
+      addExcluded(_currentChar.id);
+      renderCollection();
+
+      if (amMintBtn) { amMintBtn.textContent = '✓ MINTED'; setTimeout(() => { amMintBtn.disabled = false; updateMintBtn(); }, 2500); }
+    } catch {
+      if (amMintBtn) { amMintBtn.textContent = '⚠ FAILED'; setTimeout(() => { amMintBtn.textContent = '✦ MINT CARD'; amMintBtn.disabled = false; }, 2000); }
+    }
+  }
+  function escXml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /* ─── Mint btn state ─── */
+  function updateMintBtn() {
+    if (!amMintBtn) return;
+    const { chain } = getWallet();
+    if (chain) {
+      amMintBtn.textContent = '✦ MINT CARD';
+      amMintBtn.classList.add('wallet-ready');
+      amMintBtn.title = 'Mint this character as a signed ASCII trading card';
+    } else {
+      amMintBtn.textContent = '🔒 CONNECT WALLET';
+      amMintBtn.classList.remove('wallet-ready');
+      amMintBtn.title = 'Connect a wallet to mint';
+    }
+    amMintBtn.disabled = false;
+  }
+
+  /* ─── Guess game ─── */
+  function setupGuess() {
+    _guessAnswered = false;
+    if (amReveal) amReveal.textContent = '';
+    if (amNextGuess) amNextGuess.style.display = 'none';
+    renderASCII(amGuessCanvas);
+    buildOptions();
+  }
+
+  function buildOptions() {
+    if (!amOptions || !_currentChar) return;
+    const choices = [_currentChar];
+    const shuffledRest = _distractors.slice().sort(() => Math.random()-.5);
+    for (const d of shuffledRest) { if (choices.length >= 4) break; choices.push(d); }
+    choices.sort(() => Math.random() - .5);
+    amOptions.innerHTML = '';
+    const labels = ['A', 'B', 'C', 'D'];
+    choices.forEach((c, idx) => {
+      const name = c.name?.full || c.name || 'Unknown';
+      const btn = document.createElement('button');
+      btn.className = 'am-option';
+      btn.textContent = `${labels[idx]}) ${name}`;
+      /* Store char id for correctness comparison (not textContent, which has prefix) */
+      btn.dataset.charId = String(c.id);
+      btn.addEventListener('click', () => handleGuess(btn));
+      amOptions.appendChild(btn);
+    });
+  }
+
+  function handleGuess(btn) {
+    if (_guessAnswered) return;
+    _guessAnswered = true;
+    const correct = btn.dataset.charId === String(_currentChar.id);
+    document.querySelectorAll('.am-option').forEach(b => b.disabled = true);
+    btn.classList.add(correct ? 'correct' : 'wrong');
+    if (!correct) {
+      /* Highlight the correct answer by id */
+      document.querySelectorAll('.am-option').forEach(b => {
+        if (b.dataset.charId === String(_currentChar.id)) b.classList.add('correct');
+      });
+    }
+    const score = loadScore();
+    if (correct) {
+      score.streak++; if (score.streak > score.best) score.best = score.streak;
+      /* Fix #10: upsert collection with guessedCorrect flag */
+      upsertCollection(_currentChar, { guessedCorrect: true });
+      renderCollection();
+    } else { score.streak = 0; }
+    saveScore(score);
+    updateScoreDisplay();
+    typewriterReveal(correct
+      ? `✓ CORRECT! ${_currentChar.name} · ${_currentChar.source} · ${_currentChar.tier} · ♥ ${_currentChar.favourites.toLocaleString()}`
+      : `✗ ${_currentChar.name} · ${_currentChar.source}`
+    );
+    if (amNextGuess) amNextGuess.style.display = '';
+  }
+
+  function typewriterReveal(text) {
+    if (!amReveal) return;
+    amReveal.textContent = '';
+    let i = 0;
+    const tick = setInterval(() => {
+      amReveal.textContent += text[i++];
+      if (i >= text.length) clearInterval(tick);
+    }, 28);
+  }
+
+  /* ─── Score persistence ─── */
+  function loadScore() {
+    try { return JSON.parse(localStorage.getItem(LS_SCORE)) || { streak:0, best:0 }; } catch { return { streak:0, best:0 }; }
+  }
+  function saveScore(s) { localStorage.setItem(LS_SCORE, JSON.stringify(s)); }
+  function updateScoreDisplay() {
+    const s = loadScore();
+    if (amStreakEl) amStreakEl.textContent = s.streak;
+    if (amBestEl)   amBestEl.textContent  = s.best;
+  }
+
+  /* ─── Collection persistence ─── */
+  function loadCollection() {
+    try { return JSON.parse(localStorage.getItem(LS_COLL)) || []; } catch { return []; }
+  }
+  /** Upsert a character entry with the given flag overrides (e.g. {minted:true} or {guessedCorrect:true}) */
+  function upsertCollection(char, flags) {
+    const coll = loadCollection();
+    let entry = coll.find(c => c.id === char.id);
+    if (!entry) {
+      entry = {
+        id: char.id, name: char.name, source: char.source,
+        image: char.image, favourites: char.favourites, tier: char.tier,
+        date: new Date().toISOString(), minted: false, mintedToken: null, guessedCorrect: false
+      };
+      coll.unshift(entry);
+    }
+    Object.assign(entry, flags);
+    localStorage.setItem(LS_COLL, JSON.stringify(coll.slice(0, 200)));
+  }
+
+  /* ─── Excluded-id set (never fetch as guess target) ─── */
+  function loadExcluded() {
+    try { return new Set(JSON.parse(localStorage.getItem(LS_EXCL)) || []); } catch { return new Set(); }
+  }
+  function addExcluded(id) {
+    const s = loadExcluded(); s.add(id);
+    localStorage.setItem(LS_EXCL, JSON.stringify([...s]));
+  }
+  function isExcluded(id) { return loadExcluded().has(id); }
+
+  function renderCollection() {
+    const coll = loadCollection();
+    const minted  = coll.filter(e => e.minted);
+    const guessed = coll.filter(e => e.guessedCorrect);
+    const total   = coll.length;
+
+    if (amCollCount) amCollCount.textContent = `${total} COLLECTED`;
+    if (amCollEmpty) amCollEmpty.style.display = total ? 'none' : '';
+
+    const mintedSection  = document.getElementById('am-coll-minted-section');
+    const guessedSection = document.getElementById('am-coll-guessed-section');
+    const mintedGrid     = document.getElementById('am-coll-grid-minted');
+    const guessedGrid    = document.getElementById('am-coll-grid-guessed');
+
+    if (mintedSection)  mintedSection.style.display  = minted.length  ? '' : 'none';
+    if (guessedSection) guessedSection.style.display = guessed.length ? '' : 'none';
+    if (mintedGrid)  mintedGrid.innerHTML  = '';
+    if (guessedGrid) guessedGrid.innerHTML = '';
+
+    function makeCard(entry, grid) {
+      const card = document.createElement('div');
+      card.className = 'am-coll-card' + (entry.minted ? ' minted' : '');
+      card.setAttribute('role','button'); card.tabIndex = 0;
+      card.setAttribute('aria-label', entry.name);
+      const thumb = document.createElement('canvas');
+      thumb.width = 80; thumb.height = 60;
+      card.appendChild(thumb);
+      const nameEl = document.createElement('div'); nameEl.className = 'am-coll-name'; nameEl.textContent = entry.name;
+      card.appendChild(nameEl);
+      const rarEl = document.createElement('div'); rarEl.className = `am-rarity am-rarity-${entry.tier} am-coll-rarity`; rarEl.textContent = entry.tier;
+      card.appendChild(rarEl);
+      drawThumb(thumb, entry.image);
+      /* Fix #11: clicking a card opens it in LAB with name revealed, excludes from guess */
+      card.addEventListener('click', () => {
+        _currentChar = { ...entry, _revealed: true };
+        addExcluded(entry.id);
+        _cachedPixels = null;
+        loadAndRender(entry.image).then(() => {
+          if (amCharBadge) amCharBadge.textContent = `${entry.name} · ${entry.source}`;
+        });
+        switchTab('lab');
+      });
+      grid.appendChild(card);
+    }
+
+    if (mintedGrid)  minted.forEach(e  => makeCard(e, mintedGrid));
+    if (guessedGrid) guessed.forEach(e => makeCard(e, guessedGrid));
+  }
+
+  function drawThumb(canvas, url) {
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const pix = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const ramp = RAMPS.standard;
+      const { chain } = getWallet();
+      const accent = chain === 'eth' ? '#7c3aed' : chain === 'sol' ? '#14f195' : '#00f5d4';
+      ctx.font = '3px "Share Tech Mono",monospace'; ctx.textBaseline = 'top';
+      for (let r = 0; r < canvas.height; r++) {
+        for (let c = 0; c < canvas.width; c++) {
+          const i = (r*canvas.width+c)*4;
+          const lum = 0.299*pix.data[i]+0.587*pix.data[i+1]+0.114*pix.data[i+2];
+          const ch  = ramp[Math.floor((lum/255)*(ramp.length-1))]||' ';
+          ctx.fillStyle = accent; ctx.fillText(ch, c*3, r*3);
+        }
+      }
+    };
+    img.src = url;
+  }
+
+  /* ─── Event listeners ─── */
+  if (animeSymbol) {
+    animeSymbol.addEventListener('click', openAnimeModal);
+    animeSymbol.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); openAnimeModal(); } });
+    animeSymbol.addEventListener('mouseenter', () => document.getElementById('cursor-ring')?.classList.add('expanded'));
+    animeSymbol.addEventListener('mouseleave', () => document.getElementById('cursor-ring')?.classList.remove('expanded'));
+  }
+  if (amClose)     amClose.addEventListener('click', closeAnimeModal);
+  if (animeModal)  animeModal.addEventListener('click', e => { if (e.target === animeModal) closeAnimeModal(); });
+
+  /* Extend existing Escape handler to also close anime modal */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && animeModal?.classList.contains('open')) closeAnimeModal();
+  });
+
+  /* ─── Init ─── */
+  wireControls();
+  startAnimeGlyphCycle();
+  updateScoreDisplay();
+
+})();
+</script>
+<script>
+(function(){
+  const card = document.querySelector('.edu-card');
+  if (!card) return;
+  const wrap = card.closest('.edu-wrap');
+  let raf, isHovering = false;
+
+  wrap.addEventListener('mousemove', e => {
+    isHovering = true;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width;
+      const y = (e.clientY - r.top)  / r.height;
+      const ry =  (x - .5) * 24;
+      const rx = -(y - .5) * 18;
+      card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+      card.style.setProperty('--shine-x', `${x * 100}%`);
+      card.style.setProperty('--shine-y', `${y * 100}%`);
+      const lift = Math.hypot(ry, rx) / 20;
+      card.style.boxShadow = [
+        '0 0 0 1px rgba(0,245,212,.35)',
+        'inset 0 1px 0 rgba(255,255,255,.18)',
+        'inset 0 -1px 0 rgba(0,0,0,.55)',
+        `0 ${28 + lift*35}px ${80 + lift*50}px rgba(0,0,0,${.88 - lift*.05})`,
+        `0 0 ${35 + lift*25}px rgba(0,245,212,${.07 + lift*.08})`
+      ].join(',');
+    });
+  });
+
+  wrap.addEventListener('mouseleave', () => {
+    isHovering = false;
+    card.style.transition = 'transform .55s cubic-bezier(.23,1,.32,1), box-shadow .55s ease-out';
+    card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    card.style.removeProperty('box-shadow');
+    card.style.setProperty('--shine-x', '50%');
+    card.style.setProperty('--shine-y', '0%');
+    setTimeout(() => {
+      if (!isHovering) card.style.transition = 'transform .1s ease-out, box-shadow .1s ease-out';
+    }, 560);
+  });
 })();
 </script>
 </body>
