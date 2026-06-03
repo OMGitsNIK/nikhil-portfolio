@@ -1816,7 +1816,7 @@
           <div class="am-reveal" id="am-reveal" aria-live="polite"></div>
           <button class="am-btn-primary" id="am-next-guess" style="display:none">NEXT →</button>
           <div class="am-ctrl-section" style="margin-top:18px">
-            <div class="am-ctrl-label">DIFFICULTY · left = easy</div>
+            <div class="am-ctrl-label">DIFFICULTY · ← famous · obscure →</div>
             <input type="range" class="am-slider" id="am-difficulty" min="30" max="100" value="65" aria-label="Difficulty">
           </div>
         </div>
@@ -3212,6 +3212,8 @@ function openEmail() {
   let _rafId         = null;
   let _flickerTimer  = null;
   let _guessAnswered = false;
+  /* Guess difficulty as character popularity: 0 = most famous (page 1), 1 = obscure (deep pages) */
+  let _difficulty    = 0.5;
 
   /* Controls state */
   let _ctrl = { density:101, ramp:'standard', color:'cyan', brightness:0, contrast:0, glow:4, invert:false, crt:false, flicker:false };
@@ -3246,8 +3248,15 @@ function openEmail() {
   }
 
   /* ─── AniList fetch ─── */
+  /* Map difficulty (0 famous … 1 obscure) to a FAVOURITES_DESC page.
+     Page 1 = the 25 most-favourited characters; deeper pages = less known. */
+  function pickPage() {
+    const maxPage = 40;
+    const base = 1 + Math.round(_difficulty * (maxPage - 4)); /* 1 … 37 */
+    return Math.min(maxPage, base + Math.floor(Math.random() * 4)); /* small spread */
+  }
   async function fetchPage(attempt) {
-    const page = Math.floor(Math.random() * 40) + 1;
+    const page = pickPage();
     const res = await fetch(ANILIST_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -3608,13 +3617,25 @@ function openEmail() {
     document.getElementById('am-export-png')?.addEventListener('click', exportPNG);
     if (amMintBtn) amMintBtn.addEventListener('click', mintCard);
 
-    document.getElementById('am-difficulty')?.addEventListener('input', e => {
-      /* Fix #8: invert so left=easy(high density), right=hard(low density) */
-      const el  = e.target;
-      const min = +el.min, max = +el.max;
-      _ctrl.density = (min + max) - +el.value;
-      if (_currentChar && _guessAnswered === false) loadAndRender(_currentChar.image);
-    });
+    /* Difficulty = character popularity (not image density).
+       left = famous/easy, right = obscure/hard. Live-update the value, and on
+       release fetch a fresh character from the matching popularity tier. */
+    const diffEl = document.getElementById('am-difficulty');
+    if (diffEl) {
+      const applyDiff = () => {
+        const mn = +diffEl.min, mx = +diffEl.max;
+        _difficulty = (+diffEl.value - mn) / (mx - mn);
+      };
+      applyDiff();
+      diffEl.addEventListener('input', applyDiff);
+      diffEl.addEventListener('change', () => {
+        applyDiff();
+        if (animeModal?.classList.contains('open')) {
+          if (amNextGuess) amNextGuess.style.display = 'none';
+          fetchRandomCharacter().then(() => setupGuess());
+        }
+      });
+    }
 
     /* Fix #3: REVEAL NAME button */
     document.getElementById('am-reveal-name-btn')?.addEventListener('click', () => {
