@@ -1146,6 +1146,18 @@
       from { opacity:0; } to { opacity:1; }
     }
 
+    /* Idle "I'm clickable" breathing glow for the floating launcher icons */
+    @keyframes idleGlow {
+      0%,100% { opacity: .3;  text-shadow: 0 0 8px currentColor; }
+      50%     { opacity: .58; text-shadow: 0 0 22px currentColor, 0 0 40px currentColor; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #mystery-symbol, #anime-symbol {
+        animation: none !important;
+        opacity: .5; text-shadow: 0 0 14px currentColor;
+      }
+    }
+
     /* ── Mystery floating symbol ── */
     #mystery-symbol {
       position: absolute; right: 8%; top: 45%; z-index: 3;
@@ -1153,12 +1165,13 @@
       font-family: 'Share Tech Mono', monospace;
       color: var(--cyan); opacity: .2; line-height: 1;
       cursor: none; user-select: none;
-      animation: mystFloat 4s ease-in-out infinite;
+      animation: mystFloat 4s ease-in-out infinite, idleGlow 2.6s ease-in-out infinite;
       transition: opacity .4s, text-shadow .4s, color .4s;
     }
     #mystery-symbol:hover {
-      opacity: .72;
-      text-shadow: 0 0 18px currentColor, 0 0 36px currentColor;
+      opacity: .85;
+      text-shadow: 0 0 22px currentColor, 0 0 44px currentColor, 0 0 70px currentColor;
+      animation-play-state: paused;
     }
     #mystery-symbol.connected-eth { color: var(--purple); animation: connectedPulse 2.2s ease-in-out infinite; }
     #mystery-symbol.connected-sol { color: #14f195; animation: connectedPulse 2.2s ease-in-out infinite; }
@@ -1176,7 +1189,7 @@
         border: 1px solid rgba(0,245,212,0.28);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
-        animation: mystFloat 4s ease-in-out infinite;
+        animation: mystFloat 4s ease-in-out infinite, idleGlow 2.6s ease-in-out infinite;
       }
     }
 
@@ -1327,12 +1340,13 @@
       font-family: 'Share Tech Mono', monospace;
       color: var(--cyan); opacity: .2; line-height: 1;
       cursor: none; user-select: none;
-      animation: mystFloat 4s ease-in-out infinite;
+      animation: mystFloat 4s ease-in-out infinite, idleGlow 2.6s ease-in-out infinite;
       transition: opacity .4s, text-shadow .4s, color .4s;
     }
     #anime-symbol:hover {
-      opacity: .72;
-      text-shadow: 0 0 18px currentColor, 0 0 36px currentColor;
+      opacity: .85;
+      text-shadow: 0 0 22px currentColor, 0 0 44px currentColor, 0 0 70px currentColor;
+      animation-play-state: paused;
     }
     body.eth-connected #anime-symbol { color: var(--purple); }
     body.sol-connected #anime-symbol { color: #14f195; }
@@ -1345,7 +1359,7 @@
         background: rgba(2,8,23,.72);
         border: 1px solid rgba(0,245,212,.28);
         backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-        animation: mystFloat 4s ease-in-out infinite;
+        animation: mystFloat 4s ease-in-out infinite, idleGlow 2.6s ease-in-out infinite;
       }
     }
 
@@ -1426,11 +1440,6 @@
       94% { opacity: 1; }
       96% { opacity: .85; }
       97% { opacity: 1; }
-    }
-    .am-char-badge {
-      position: absolute; bottom: 8px; right: 10px;
-      font-family: 'Share Tech Mono', monospace; font-size: .55rem;
-      color: var(--dim); letter-spacing: .1em; opacity: .7;
     }
     .am-loading {
       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -1586,6 +1595,58 @@
     }
     .am-coll-empty small { font-size: .58rem; opacity: .6; }
 
+    /* ── Leaderboard (RANKS) tab ── */
+    .am-lb-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .am-lb-net {
+      font-family: 'Share Tech Mono', monospace; font-size: .58rem;
+      color: #14f195; letter-spacing: .14em; margin-left: auto;
+      border: 1px solid rgba(20,241,149,.3); padding: 4px 9px;
+    }
+    .am-lb-status {
+      font-family: 'Share Tech Mono', monospace; font-size: .58rem;
+      color: var(--dim); letter-spacing: .08em; margin-bottom: 14px; line-height: 1.6;
+      word-break: break-word;
+    }
+    .am-lb-status.err { color: #f87171; }
+    .am-lb-status.ok  { color: #14f195; }
+    .am-lb-head, .am-lb-row {
+      display: grid; grid-template-columns: 40px 1fr 70px 56px; align-items: center;
+      gap: 8px; padding: 9px 10px;
+      font-family: 'Share Tech Mono', monospace; font-size: .64rem;
+    }
+    .am-lb-head {
+      color: var(--dim); letter-spacing: .16em; font-size: .54rem;
+      border-bottom: 1px solid var(--border); margin-bottom: 4px;
+    }
+    .am-lb-head .am-lb-score, .am-lb-head .am-lb-streak,
+    .am-lb-row  .am-lb-score, .am-lb-row  .am-lb-streak { text-align: right; }
+    .am-lb-row {
+      border: 1px solid var(--border); border-left: 2px solid var(--border);
+      margin-bottom: 6px; background: rgba(10,22,40,.55); color: var(--text);
+      transition: border-color .2s, background .2s;
+    }
+    .am-lb-row .am-lb-rank { color: var(--cyan); font-weight: 700; }
+    .am-lb-row .am-lb-addr { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .am-lb-row .am-lb-score { color: #14f195; font-weight: 700; }
+    .am-lb-row .am-lb-streak { color: var(--dim); }
+    .am-lb-row.top1 { border-left-color: var(--gold); }
+    .am-lb-row.top1 .am-lb-rank { color: var(--gold); }
+    .am-lb-row.you {
+      border-color: var(--cyan); border-left-color: var(--cyan);
+      background: rgba(0,245,212,.08);
+    }
+    body.sol-connected .am-lb-row.you { border-color: #14f195; border-left-color: #14f195; background: rgba(20,241,149,.08); }
+    body.eth-connected .am-lb-row.you { border-color: var(--purple); border-left-color: var(--purple); background: rgba(124,58,237,.08); }
+    .am-lb-you-wrap { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
+    .am-lb-you-label {
+      font-family: 'Share Tech Mono', monospace; font-size: .54rem;
+      color: var(--dim); letter-spacing: .18em; margin-bottom: 6px;
+    }
+    .am-lb-empty {
+      font-family: 'Share Tech Mono', monospace; font-size: .62rem;
+      color: var(--dim); letter-spacing: .1em; padding: 28px 0; text-align: center; line-height: 1.9;
+    }
+
     /* ── Mobile responsiveness ── */
     @media (max-width: 540px) {
       .am-box {
@@ -1616,6 +1677,7 @@
       .am-ramp-btn, .am-color-btn { cursor: pointer; padding: 6px 8px; }
       .am-toggle { cursor: pointer; }
       .am-toggle input { width: 16px; height: 16px; }
+      .am-btn-primary, .am-btn-ghost, .am-btn-mint { cursor: pointer; }
     }
 
     /* Difficulty slider: green (left/easy) → red (right/hard) */
@@ -1760,6 +1822,7 @@
         <button class="am-tab active" id="am-tab-guess"      role="tab" aria-selected="true"  aria-controls="am-panel-guess">GUESS</button>
         <button class="am-tab"        id="am-tab-lab"        role="tab" aria-selected="false" aria-controls="am-panel-lab">LAB</button>
         <button class="am-tab"        id="am-tab-collection" role="tab" aria-selected="false" aria-controls="am-panel-collection">COLLECTION</button>
+        <button class="am-tab"        id="am-tab-leaderboard" role="tab" aria-selected="false" aria-controls="am-panel-leaderboard">RANKS</button>
       </div>
     </div>
 
@@ -1773,7 +1836,6 @@
           </div>
           <canvas id="am-canvas" aria-label="Anime character ASCII art"></canvas>
           <div class="am-scanlines" id="am-scanlines" aria-hidden="true"></div>
-          <div class="am-char-badge" id="am-char-badge" aria-hidden="true"></div>
         </div>
 
         <!-- Controls sidebar -->
@@ -1841,8 +1903,10 @@
           <div class="am-score-row">
             <span class="am-score-label">STREAK</span>
             <span class="am-score-val" id="am-streak">0</span>
-            <span class="am-score-label" style="margin-left:16px">BEST</span>
+            <span class="am-score-label" style="margin-left:14px">BEST</span>
             <span class="am-score-val" id="am-best">0</span>
+            <span class="am-score-label" style="margin-left:14px">TOTAL</span>
+            <span class="am-score-val" id="am-total">0</span>
           </div>
           <div class="am-options" id="am-options" role="group" aria-label="Answer choices"></div>
           <div class="am-reveal" id="am-reveal" aria-live="polite"></div>
@@ -1870,6 +1934,24 @@
         <div class="am-coll-grid" id="am-coll-grid-guessed" aria-label="Correctly guessed anime characters"></div>
       </div>
       <div class="am-coll-empty" id="am-coll-empty">// NO CHARACTERS COLLECTED YET<br><small>Guess correctly or mint to start your collection.</small></div>
+    </div>
+
+    <!-- LEADERBOARD (RANKS) TAB -->
+    <div class="am-panel" id="am-panel-leaderboard" role="tabpanel" aria-labelledby="am-tab-leaderboard" hidden>
+      <div class="am-lb-bar">
+        <button class="am-btn-primary" id="am-lb-submit">↑ SUBMIT MY SCORE</button>
+        <button class="am-btn-ghost"   id="am-lb-refresh">⟳ REFRESH</button>
+        <span class="am-lb-net">◎ SOLANA · DEVNET</span>
+      </div>
+      <div class="am-lb-status" id="am-lb-status" aria-live="polite">// UNVERIFIED · ON-CHAIN HONOR SYSTEM · DEVNET</div>
+      <div class="am-lb-head">
+        <span class="am-lb-rank">#</span>
+        <span class="am-lb-addr">WALLET</span>
+        <span class="am-lb-score">CORRECT</span>
+        <span class="am-lb-streak">BEST</span>
+      </div>
+      <div id="am-lb-list" aria-label="Top scores"></div>
+      <div class="am-lb-you-wrap" id="am-lb-you" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -2495,8 +2577,10 @@ function validate() {
 
 /* ── crypto helpers ── */
 function _b64url(buf) {
-  return btoa(String.fromCharCode(...new Uint8Array(buf)))
-    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
 }
 async function _importPub() {
   const der = Uint8Array.from(atob(_PUB), c => c.charCodeAt(0));
@@ -2571,10 +2655,10 @@ async function handleForm(e) {
     btn.classList.add('btn-transmitting');
     btn.addEventListener('animationend', () => btn.classList.remove('btn-transmitting'), { once:true });
     e.target.reset();
+    btn.disabled = false;
     setTimeout(() => {
       btn.style.cssText = 'border:none;cursor:none;';
       btn.textContent   = 'ENCRYPT';
-      btn.disabled      = false;
     }, 2800);
 
   } catch(err) {
@@ -2622,9 +2706,13 @@ function openEmail() {
     default:'#64748b'
   };
 
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   function langDot(lang) {
     const color = LANG_COLORS[lang] || LANG_COLORS.default;
-    return `<span class="lang-dot" style="background:${color}"></span>${lang}`;
+    return `<span class="lang-dot" style="background:${color}"></span>${escHtml(lang)}`;
   }
 
   function repoCard(r) {
@@ -2634,10 +2722,10 @@ function openEmail() {
     const forks  = r.forks_count > 0
       ? `<span class="repo-forks">⑂ ${r.forks_count}</span>` : '';
     const desc   = r.description
-      ? r.description : '<span style="font-style:italic;opacity:.4">NO DESCRIPTION</span>';
+      ? escHtml(r.description) : '<span style="font-style:italic;opacity:.4">NO DESCRIPTION</span>';
     return `
       <a class="repo-card anim-up" href="${r.html_url}" target="_blank" rel="noopener">
-        <div class="repo-name">${r.name.toUpperCase()}</div>
+        <div class="repo-name">${escHtml(r.name.toUpperCase())}</div>
         <p class="repo-desc">${desc}</p>
         <div class="repo-meta">${lang}${stars}${forks}</div>
       </a>`;
@@ -2919,6 +3007,24 @@ function openEmail() {
       }, 2500);
     }
   };
+
+  /* Sync when wallet connected via the hero modal (WalletConnect IIFE) */
+  async function syncFromNrWallet() {
+    const stored = localStorage.getItem('nr_wallet');
+    if (!stored) { if (_walletAddr) { _walletAddr = null; setWalletUI(false); } return; }
+    const { chain } = JSON.parse(stored);
+    if (chain !== 'eth' || !window.ethereum) { setWalletUI(false); return; }
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (!accounts[0]) { setWalletUI(false); return; }
+      _walletAddr = accounts[0];
+      _chainId    = await window.ethereum.request({ method: 'eth_chainId' });
+      updateChainDisplay();
+      setWalletUI(true);
+    } catch { setWalletUI(false); }
+  }
+  window.addEventListener('nr:walletChange', syncFromNrWallet);
+  syncFromNrWallet();
 
   /* _lastCipher is already on window (set at global scope above) */
 })();
@@ -3223,6 +3329,16 @@ function openEmail() {
   const LS_COLL   = 'nr_anime_collection';
   const LS_WALLET = 'nr_wallet';
   const LS_EXCL   = 'nr_anime_excluded';
+
+  /* ── On-chain leaderboard (Solana devnet) ── */
+  const LB_RPC          = 'https://api.devnet.solana.com';
+  const LB_ANCHOR       = '3qrnYUseLBjC89yFW6tLFD5EW2PF4shdX9WXDH66wz1K'; /* devnet anchor — only receives 1-lamport markers; its secret is discarded */
+  const LB_MEMO_PROGRAM = 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr';
+  const LB_TAG          = 'NRLB1:';   /* memo magic prefix so we ignore unrelated txs */
+  const LB_WEB3_SRC     = 'https://unpkg.com/@solana/web3.js@1.95.8/lib/index.iife.min.js';
+  let   _lbCache        = null;       /* { ts:number, rows:[{wallet,tc,bs}] } */
+  let   _lbWeb3Promise  = null;       /* memoized loader */
+  let   _lbBusy         = false;
   const ANIME_GLYPHS = ['忍','火','斬','月','◉','☠','⚔','⛩','刀','鬼'];
   const RAMPS = {
     standard: ' .:-=+*#%@',
@@ -3260,7 +3376,6 @@ function openEmail() {
   const amCanvas      = document.getElementById('am-canvas');
   const amGuessCanvas = document.getElementById('am-guess-canvas');
   const amLoading     = document.getElementById('am-loading');
-  const amCharBadge   = document.getElementById('am-char-badge');
   const amScanlines   = document.getElementById('am-scanlines');
   const amOptions     = document.getElementById('am-options');
   const amReveal      = document.getElementById('am-reveal');
@@ -3360,14 +3475,6 @@ function openEmail() {
         requestAnimationFrame(() => {
           _doRender(amCanvas);
           _doRender(amGuessCanvas);
-          /* Badge shows rarity only (anti-cheat #3) unless char is revealed */
-          if (amCharBadge) {
-            if (_currentChar?._revealed) {
-              amCharBadge.textContent = `${_currentChar.name} · ${_currentChar.source}`;
-            } else {
-              amCharBadge.textContent = `??? · ${_currentChar?.tier || '?'}`;
-            }
-          }
           showLoading(false);
           resolve();
         });
@@ -3583,9 +3690,10 @@ function openEmail() {
     /* Per-tab title label (#6) */
     const titleEl = document.getElementById('am-title-label');
     if (titleEl) {
-      titleEl.textContent = name === 'guess'      ? '// ANIME GUESSING CHALLENGE'
-                          : name === 'lab'        ? '// ANIME ASCII LAB'
-                          : name === 'collection' ? '// ANIME CHARS COLLECTION'
+      titleEl.textContent = name === 'guess'       ? '// GUESS ANIME CHARACTERS'
+                          : name === 'lab'         ? '// ANIME ASCII LAB'
+                          : name === 'collection'  ? '// ANIME CHARACTERS COLLECTION'
+                          : name === 'leaderboard' ? '// ON-CHAIN LEADERBOARD'
                           : titleEl.textContent;
     }
     if (name === 'guess') {
@@ -3596,6 +3704,9 @@ function openEmail() {
       } else {
         setupGuess();
       }
+    }
+    if (name === 'leaderboard') {
+      renderLeaderboard(false);
     }
   }
 
@@ -3677,7 +3788,6 @@ function openEmail() {
       if (!_currentChar) return;
       _currentChar._revealed = true;
       addExcluded(_currentChar.id);
-      if (amCharBadge) amCharBadge.textContent = `${_currentChar.name} · ${_currentChar.source}`;
       const resultEl = document.getElementById('am-reveal-name-result');
       if (resultEl) resultEl.textContent = `// ${_currentChar.name} · ${_currentChar.source}`;
     });
@@ -3693,6 +3803,9 @@ function openEmail() {
         renderCollection();
       }
     });
+
+    document.getElementById('am-lb-submit')?.addEventListener('click', submitScore);
+    document.getElementById('am-lb-refresh')?.addEventListener('click', () => renderLeaderboard(true));
 
     document.querySelectorAll('.am-tab').forEach(tab => {
       tab.addEventListener('click', () => switchTab(tab.id.replace('am-tab-','')));
@@ -3924,6 +4037,7 @@ function openEmail() {
     const score = loadScore();
     if (correct) {
       score.streak++; if (score.streak > score.best) score.best = score.streak;
+      score.totalCorrect = (score.totalCorrect || 0) + 1;
       /* Fix #10: upsert collection with guessedCorrect flag */
       upsertCollection(_currentChar, { guessedCorrect: true });
       renderCollection();
@@ -3949,13 +4063,19 @@ function openEmail() {
 
   /* ─── Score persistence ─── */
   function loadScore() {
-    try { return JSON.parse(localStorage.getItem(LS_SCORE)) || { streak:0, best:0 }; } catch { return { streak:0, best:0 }; }
+    const def = { streak:0, best:0, totalCorrect:0 };
+    try {
+      const s = JSON.parse(localStorage.getItem(LS_SCORE)) || {};
+      return { ...def, ...s };   /* back-compat: default totalCorrect when absent */
+    } catch { return { ...def }; }
   }
   function saveScore(s) { localStorage.setItem(LS_SCORE, JSON.stringify(s)); }
   function updateScoreDisplay() {
     const s = loadScore();
     if (amStreakEl) amStreakEl.textContent = s.streak;
     if (amBestEl)   amBestEl.textContent  = s.best;
+    const totalEl = document.getElementById('am-total');
+    if (totalEl)    totalEl.textContent   = s.totalCorrect;
   }
 
   /* ─── Collection persistence ─── */
@@ -4025,9 +4145,7 @@ function openEmail() {
         _currentChar = { ...entry, _revealed: true };
         addExcluded(entry.id);
         _cachedPixels = null;
-        loadAndRender(entry.image).then(() => {
-          if (amCharBadge) amCharBadge.textContent = `${entry.name} · ${entry.source}`;
-        });
+        loadAndRender(entry.image);
         switchTab('lab');
       });
       grid.appendChild(card);
@@ -4060,6 +4178,217 @@ function openEmail() {
     img.src = url;
   }
 
+  /* ═══════════════════════════════════════════════
+     ON-CHAIN LEADERBOARD (Solana devnet) — no backend
+     Write: wallet-signed memo tx (score bound to signer).
+     Read:  public devnet RPC tx history → decode → sort.
+  ═══════════════════════════════════════════════ */
+  function lbStatus(msg, cls) {
+    const el = document.getElementById('am-lb-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'am-lb-status' + (cls ? ' ' + cls : '');
+  }
+
+  /* Lazy-load @solana/web3.js once (no build step on this site) */
+  function loadSolanaWeb3() {
+    if (window.solanaWeb3) return Promise.resolve(window.solanaWeb3);
+    if (_lbWeb3Promise) return _lbWeb3Promise;
+    _lbWeb3Promise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = LB_WEB3_SRC; s.async = true;
+      s.onload  = () => window.solanaWeb3 ? resolve(window.solanaWeb3) : reject(new Error('web3 missing'));
+      s.onerror = () => { _lbWeb3Promise = null; reject(new Error('web3 load failed')); };
+      document.head.appendChild(s);
+    });
+    return _lbWeb3Promise;
+  }
+
+  function lbConn() {
+    return new window.solanaWeb3.Connection(LB_RPC, 'confirmed');
+  }
+
+  /* Enable/disable the SUBMIT button based on whether a Solana wallet is connected */
+  function updateLbSubmitState() {
+    const btn = document.getElementById('am-lb-submit');
+    if (!btn) return;
+    const { chain } = getWallet();
+    const ready = chain === 'sol' && window.solana?.isPhantom;
+    btn.disabled = !ready || _lbBusy;
+    btn.style.opacity = btn.disabled ? '.45' : '';
+  }
+
+  /* ── Submit my score (signed devnet memo tx) ── */
+  async function submitScore() {
+    if (_lbBusy) return;
+    const { chain, address } = getWallet();
+    if (chain !== 'sol' || !window.solana?.isPhantom) {
+      lbStatus('// CONNECT A PHANTOM (SOLANA) WALLET TO SUBMIT', 'err');
+      return;
+    }
+    const btn = document.getElementById('am-lb-submit');
+    _lbBusy = true; updateLbSubmitState();
+    if (btn) btn.textContent = '⏳ SUBMITTING...';
+    try {
+      lbStatus('// LOADING SOLANA…');
+      const web3 = await loadSolanaWeb3();
+      const conn = lbConn();
+      const pubkey = new web3.PublicKey(address);
+
+      /* Ensure devnet gas */
+      lbStatus('// CHECKING DEVNET BALANCE…');
+      let bal = 0;
+      try { bal = await conn.getBalance(pubkey); } catch { /* ignore */ }
+      if (bal < 10000) {
+        lbStatus('// REQUESTING FREE DEVNET AIRDROP…');
+        try {
+          const air = await conn.requestAirdrop(pubkey, 0.02 * web3.LAMPORTS_PER_SOL);
+          await conn.confirmTransaction(air, 'confirmed');
+        } catch {
+          lbStatus('// AIRDROP RATE-LIMITED · get devnet SOL at faucet.solana.com, then retry', 'err');
+        }
+      }
+
+      const score = loadScore();
+      const payload = LB_TAG + JSON.stringify({ v:1, tc: score.totalCorrect|0, bs: score.best|0, t: Date.now() });
+
+      const memoIx = new web3.TransactionInstruction({
+        keys: [{ pubkey, isSigner: true, isWritable: true }],
+        programId: new web3.PublicKey(LB_MEMO_PROGRAM),
+        data: new TextEncoder().encode(payload),
+      });
+      const markIx = web3.SystemProgram.transfer({
+        fromPubkey: pubkey, toPubkey: new web3.PublicKey(LB_ANCHOR), lamports: 1,
+      });
+
+      const tx = new web3.Transaction().add(markIx, memoIx);
+      tx.feePayer = pubkey;
+      tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash;
+
+      lbStatus('// AWAITING WALLET SIGNATURE…');
+      const res = await window.solana.signAndSendTransaction(tx);
+      const sig = res?.signature || res;
+      lbStatus('// CONFIRMING ON DEVNET…');
+      await conn.confirmTransaction(sig, 'confirmed');
+
+      lbStatus('✓ SUBMITTED · score is now on-chain', 'ok');
+      _lbCache = null;                 /* bust cache */
+      setTimeout(() => renderLeaderboard(true), 1200);
+    } catch (err) {
+      const rejected = err?.code === 4001 || /reject/i.test(err?.message || '');
+      lbStatus(rejected ? '// SUBMISSION REJECTED IN WALLET' : '⚠ SUBMIT FAILED · ' + (err?.message || 'unknown'), 'err');
+    } finally {
+      _lbBusy = false;
+      if (btn) btn.textContent = '↑ SUBMIT MY SCORE';
+      updateLbSubmitState();
+    }
+  }
+
+  /* ── Read all submissions from chain → best-per-wallet rows ── */
+  async function fetchLeaderboardRows() {
+    if (_lbCache && Date.now() - _lbCache.ts < 60000) return _lbCache.rows;
+    const web3 = await loadSolanaWeb3();
+    const conn = lbConn();
+    const anchor = new web3.PublicKey(LB_ANCHOR);
+    const sigs = await conn.getSignaturesForAddress(anchor, { limit: 200 });
+    const list = sigs.map(s => s.signature);
+    const best = new Map();   /* wallet → {wallet, tc, bs} */
+
+    for (let i = 0; i < list.length; i += 25) {
+      const chunk = list.slice(i, i + 25);
+      let txs;
+      try {
+        txs = await conn.getParsedTransactions(chunk, { maxSupportedTransactionVersion: 0 });
+      } catch { continue; }
+      for (const tx of txs) {
+        if (!tx) continue;
+        const instrs = tx.transaction?.message?.instructions || [];
+        const memoIx = instrs.find(ix =>
+          ix.program === 'spl-memo' ||
+          (ix.programId && ix.programId.toString() === LB_MEMO_PROGRAM));
+        const memo = (memoIx && typeof memoIx.parsed === 'string') ? memoIx.parsed
+                   : (memoIx && typeof memoIx.parsed?.info === 'string') ? memoIx.parsed.info
+                   : null;
+        if (!memo || !memo.startsWith(LB_TAG)) continue;
+        let data; try { data = JSON.parse(memo.slice(LB_TAG.length)); } catch { continue; }
+        const keys = tx.transaction.message.accountKeys || [];
+        const signer = (keys.find(k => k.signer) || keys[0])?.pubkey?.toString();
+        if (!signer) continue;
+        const tc = +data.tc || 0, bs = +data.bs || 0;
+        const prev = best.get(signer);
+        if (!prev || tc > prev.tc || (tc === prev.tc && bs > prev.bs)) {
+          best.set(signer, { wallet: signer, tc, bs });
+        }
+      }
+    }
+    const rows = [...best.values()].sort((a, b) => b.tc - a.tc || b.bs - a.bs);
+    _lbCache = { ts: Date.now(), rows };
+    return rows;
+  }
+
+  function lbRowHtml(r, rank, isYou) {
+    const cls = 'am-lb-row' + (rank === 1 ? ' top1' : '') + (isYou ? ' you' : '');
+    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+    const div = document.createElement('div');
+    div.className = cls;
+    div.innerHTML =
+      `<span class="am-lb-rank">${medal}</span>` +
+      `<span class="am-lb-addr">${shortAddr(r.wallet)}${isYou ? ' · YOU' : ''}</span>` +
+      `<span class="am-lb-score">${r.tc}</span>` +
+      `<span class="am-lb-streak">⚡${r.bs}</span>`;
+    return div;
+  }
+
+  /* ── Render top 5 + your rank ── */
+  async function renderLeaderboard(force) {
+    const listEl = document.getElementById('am-lb-list');
+    const youEl  = document.getElementById('am-lb-you');
+    if (!listEl) return;
+    updateLbSubmitState();
+    if (force) _lbCache = null;
+    listEl.innerHTML = '<div class="am-lb-empty">// READING CHAIN…</div>';
+    if (youEl) youEl.style.display = 'none';
+    if (!_lbCache) lbStatus('// UNVERIFIED · ON-CHAIN HONOR SYSTEM · DEVNET');
+
+    let rows;
+    try {
+      rows = await fetchLeaderboardRows();
+    } catch (err) {
+      listEl.innerHTML = '<div class="am-lb-empty">// COULD NOT READ DEVNET<br><small>RPC may be busy — try REFRESH</small></div>';
+      lbStatus('⚠ ' + (err?.message || 'devnet read failed'), 'err');
+      return;
+    }
+
+    if (!rows.length) {
+      listEl.innerHTML = '<div class="am-lb-empty">// NO SCORES ON-CHAIN YET<br><small>Be the first — SUBMIT MY SCORE</small></div>';
+      return;
+    }
+
+    const { address } = getWallet();
+    listEl.innerHTML = '';
+    rows.slice(0, 5).forEach((r, i) => {
+      listEl.appendChild(lbRowHtml(r, i + 1, address && r.wallet === address));
+    });
+
+    /* Your rank (even if outside top 5) */
+    if (youEl) {
+      const myIdx = address ? rows.findIndex(r => r.wallet === address) : -1;
+      if (!address) {
+        youEl.style.display = 'block';
+        youEl.innerHTML = '<div class="am-lb-you-label">YOUR RANK</div><div class="am-lb-empty">// connect a wallet to see your rank</div>';
+      } else if (myIdx === -1) {
+        youEl.style.display = 'block';
+        youEl.innerHTML = '<div class="am-lb-you-label">YOUR RANK</div><div class="am-lb-empty">// not on the board yet — SUBMIT MY SCORE</div>';
+      } else if (myIdx >= 5) {
+        youEl.style.display = 'block';
+        youEl.innerHTML = '<div class="am-lb-you-label">YOUR RANK</div>';
+        youEl.appendChild(lbRowHtml(rows[myIdx], myIdx + 1, true));
+      } else {
+        youEl.style.display = 'none';  /* already highlighted in the top-5 list */
+      }
+    }
+  }
+
   /* ─── Event listeners ─── */
   if (animeSymbol) {
     animeSymbol.addEventListener('click', openAnimeModal);
@@ -4085,6 +4414,12 @@ function openEmail() {
     updateMintBtn();
     updateWalletColorBtn();
     updateWalletLine();
+    updateLbSubmitState();
+    /* If the RANKS tab is currently open, re-render so "your rank" reflects the new wallet */
+    if (animeModal?.classList.contains('open') &&
+        document.getElementById('am-panel-leaderboard')?.classList.contains('active')) {
+      renderLeaderboard(false);
+    }
   });
 
 })();
