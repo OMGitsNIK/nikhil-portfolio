@@ -4194,13 +4194,26 @@ function openEmail() {
   function loadSolanaWeb3() {
     if (window.solanaWeb3) return Promise.resolve(window.solanaWeb3);
     if (_lbWeb3Promise) return _lbWeb3Promise;
-    _lbWeb3Promise = new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = LB_WEB3_SRC; s.async = true;
-      s.onload  = () => window.solanaWeb3 ? resolve(window.solanaWeb3) : reject(new Error('web3 missing'));
-      s.onerror = () => { _lbWeb3Promise = null; reject(new Error('web3 load failed')); };
-      document.head.appendChild(s);
-    });
+    function injectScript(src) {
+      return new Promise((res, rej) => {
+        if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+        const s = document.createElement('script'); s.src = src; s.async = true;
+        s.onload = res; s.onerror = () => rej(new Error('Failed to load ' + src));
+        document.head.appendChild(s);
+      });
+    }
+    /* Load the browser Buffer polyfill first — @solana/web3.js v1 reaches for the
+       global Buffer in several code paths that the bundled copy doesn't always cover. */
+    _lbWeb3Promise = injectScript('https://unpkg.com/buffer@6.0.3/index.js')
+      .then(() => {
+        if (!window.Buffer && window.buffer) window.Buffer = window.buffer.Buffer;
+        return injectScript(LB_WEB3_SRC);
+      })
+      .then(() => {
+        if (!window.solanaWeb3) throw new Error('web3 missing after load');
+        return window.solanaWeb3;
+      })
+      .catch(err => { _lbWeb3Promise = null; throw err; });
     return _lbWeb3Promise;
   }
 
