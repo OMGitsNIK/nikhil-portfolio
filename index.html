@@ -4225,18 +4225,20 @@ function openEmail() {
   function updateLbSubmitState() {
     const btn = document.getElementById('am-lb-submit');
     if (!btn) return;
-    const { chain } = getWallet();
-    const ready = chain === 'sol' && window.solana?.isPhantom;
-    btn.disabled = !ready || _lbBusy;
-    btn.style.opacity = btn.disabled ? '.45' : '';
+    btn.disabled = _lbBusy;   /* only disable while a submission is in flight */
+    btn.style.opacity = _lbBusy ? '.45' : '';
   }
 
   /* ── Submit my score (signed devnet memo tx) ── */
   async function submitScore() {
     if (_lbBusy) return;
     const { chain, address } = getWallet();
+    if (!chain) {
+      lbStatus('// CONNECT A WALLET FIRST · use the ◈ icon in the nav', 'err');
+      return;
+    }
     if (chain !== 'sol' || !window.solana?.isPhantom) {
-      lbStatus('// CONNECT A PHANTOM (SOLANA) WALLET TO SUBMIT', 'err');
+      lbStatus('// LEADERBOARD USES SOLANA DEVNET · connect a Phantom wallet via the ◈ icon to submit', 'err');
       return;
     }
     const btn = document.getElementById('am-lb-submit');
