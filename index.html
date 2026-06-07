@@ -4315,8 +4315,16 @@ function openEmail() {
         programId: new web3.PublicKey(LB_MEMO_PROGRAM),
         data: new TextEncoder().encode(payload),
       });
+      /* Fund anchor to rent-exempt minimum on first-ever submission (one-time ~0.00089 SOL);
+         afterwards anchor is funded and 1 lamport is enough for discoverability. */
+      const anchorPubkey = new web3.PublicKey(LB_ANCHOR);
+      const [anchorBal, minRent] = await Promise.all([
+        conn.getBalance(anchorPubkey),
+        conn.getMinimumBalanceForRentExemption(0),
+      ]);
+      const markLamports = anchorBal >= minRent ? 1 : minRent - anchorBal + 1;
       const markIx = web3.SystemProgram.transfer({
-        fromPubkey: pubkey, toPubkey: new web3.PublicKey(LB_ANCHOR), lamports: 1,
+        fromPubkey: pubkey, toPubkey: anchorPubkey, lamports: markLamports,
       });
 
       const tx = new web3.Transaction().add(markIx, memoIx);
