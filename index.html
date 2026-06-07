@@ -4324,8 +4324,18 @@ function openEmail() {
       tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash;
 
       lbStatus('// AWAITING WALLET SIGNATURE…');
-      const res = await window.solana.signAndSendTransaction(tx);
-      const sig = res?.signature || res;
+      let sig;
+      if (window.solana.signTransaction) {
+        /* Sign only — then WE broadcast on our devnet connection. This avoids
+           Phantom routing the send to its own selected cluster (Testnet, ~0 SOL)
+           and falsely reporting "not enough SOL". */
+        const signed = await window.solana.signTransaction(tx);
+        lbStatus('// BROADCASTING ON DEVNET…');
+        sig = await conn.sendRawTransaction(signed.serialize(), { skipPreflight: false, maxRetries: 5 });
+      } else {
+        const res = await window.solana.signAndSendTransaction(tx);
+        sig = res?.signature || res;
+      }
       lbStatus('// CONFIRMING ON DEVNET…');
       await conn.confirmTransaction(sig, 'confirmed');
 
