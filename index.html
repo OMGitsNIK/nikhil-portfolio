@@ -4431,7 +4431,7 @@ function openEmail() {
     div.className = cls;
     div.innerHTML =
       `<span class="am-lb-rank">${medal}</span>` +
-      `<span class="am-lb-addr">${shortAddr(r.wallet)}${isYou ? ' · YOU' : ''}</span>` +
+      `<span class="am-lb-addr">${r.wallet.slice(0,4)}…${r.wallet.slice(-4)}${isYou ? ' · YOU' : ''}</span>` +
       `<span class="am-lb-score">${r.tc}</span>` +
       `<span class="am-lb-streak">⚡${r.bs}</span>`;
     return div;
