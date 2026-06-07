@@ -4360,38 +4360,57 @@ function openEmail() {
     }
   }
 
+  /* Raw JSON-RPC over fetch() — the READ path uses NO web3.js and NO Buffer,
+     so it can never be broken by the Buffer polyfill / web3 bundle. */
+  async function lbRpc(method, params) {
+    const r = await fetch(LB_RPC, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    });
+    if (!r.ok) throw new Error(method + ' HTTP ' + r.status);
+    const j = await r.json();
+    if (j.error) throw new Error(method + ': ' + (j.error.message || 'rpc error'));
+    return j.result;
+  }
+
   /* ── Read all submissions from chain → best-per-wallet rows ── */
   async function fetchLeaderboardRows() {
     if (_lbCache && Date.now() - _lbCache.ts < 60000) return _lbCache.rows;
-    const web3 = await loadSolanaWeb3();
-    const conn = lbConn();
-    const anchor = new web3.PublicKey(LB_ANCHOR);
-    const sigs = await conn.getSignaturesForAddress(anchor, { limit: 200 });
-    const list = sigs.map(s => s.signature);
+    const sigInfos = await lbRpc('getSignaturesForAddress', [LB_ANCHOR, { limit: 100 }]);
+    const sigs = (sigInfos || []).map(s => s.signature);
+    let raw = 0;
     const best = new Map();   /* wallet → {wallet, tc, bs} */
 
-    for (let i = 0; i < list.length; i += 25) {
-      const chunk = list.slice(i, i + 25);
-      let txs;
-      try {
-        txs = await conn.getParsedTransactions(chunk, { maxSupportedTransactionVersion: 0 });
-      } catch { continue; }
-      for (const tx of txs) {
+    for (let i = 0; i < sigs.length; i += 25) {
+      const chunk = sigs.slice(i, i + 25);
+      /* JSON-RPC batch in a single POST — errors propagate (no silent swallow) */
+      const res = await fetch(LB_RPC, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(chunk.map((sig, id) => ({
+          jsonrpc: '2.0', id, method: 'getTransaction',
+          params: [sig, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 }],
+        }))),
+      });
+      if (!res.ok) throw new Error('getTransaction batch HTTP ' + res.status);
+      const batch = await res.json();
+      for (const item of batch) {
+        const tx = item?.result;
         if (!tx) continue;
         const instrs = tx.transaction?.message?.instructions || [];
         const memoIx = instrs.find(ix =>
-          ix.program === 'spl-memo' ||
-          (ix.programId && ix.programId.toString() === LB_MEMO_PROGRAM));
-        const memo = (memoIx && typeof memoIx.parsed === 'string') ? memoIx.parsed
-                   : (memoIx && typeof memoIx.parsed?.info === 'string') ? memoIx.parsed.info
-                   : null;
+          ix.program === 'spl-memo' || ix.programId === LB_MEMO_PROGRAM);
+        const p = memoIx?.parsed;
+        const memo = typeof p === 'string' ? p
+                   : (typeof p?.info === 'string' ? p.info : null);
+        if (!memo) continue;
         /* Memo program prepends "[byteLen] " — strip it before matching our tag */
-        const cleanMemo = memo.replace(/^\[\d+\]\s*/, '');
-        if (!cleanMemo.startsWith(LB_TAG)) continue;
-        let data; try { data = JSON.parse(cleanMemo.slice(LB_TAG.length)); } catch { continue; }
+        const clean = memo.replace(/^\[\d+\]\s*/, '');
+        if (!clean.startsWith(LB_TAG)) continue;
+        let data; try { data = JSON.parse(clean.slice(LB_TAG.length)); } catch { continue; }
         const keys = tx.transaction.message.accountKeys || [];
-        const signer = (keys.find(k => k.signer) || keys[0])?.pubkey?.toString();
+        const signer = (keys.find(k => k.signer) || keys[0])?.pubkey;  /* string in raw RPC */
         if (!signer) continue;
+        raw++;
         const tc = +data.tc || 0, bs = +data.bs || 0;
         const prev = best.get(signer);
         if (!prev || tc > prev.tc || (tc === prev.tc && bs > prev.bs)) {
@@ -4400,6 +4419,7 @@ function openEmail() {
       }
     }
     const rows = [...best.values()].sort((a, b) => b.tc - a.tc || b.bs - a.bs);
+    rows._raw = raw;
     _lbCache = { ts: Date.now(), rows };
     return rows;
   }
@@ -4439,8 +4459,10 @@ function openEmail() {
 
     if (!rows.length) {
       listEl.innerHTML = '<div class="am-lb-empty">// NO SCORES ON-CHAIN YET<br><small>Be the first — SUBMIT MY SCORE</small></div>';
+      lbStatus('// READ ' + (rows._raw || 0) + ' SUBMISSION(S) · 0 PLAYERS · DEVNET');
       return;
     }
+    lbStatus('// READ ' + (rows._raw || rows.length) + ' SUBMISSION(S) · ' + rows.length + ' PLAYER(S) · DEVNET · UNVERIFIED', 'ok');
 
     const { address } = getWallet();
     listEl.innerHTML = '';
