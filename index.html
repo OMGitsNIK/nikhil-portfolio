@@ -4191,29 +4191,63 @@ function openEmail() {
   }
 
   /* Lazy-load @solana/web3.js once (no build step on this site) */
+  /* Inline Buffer polyfill — @solana/web3.js v1 uses the global Buffer in several
+     code paths. CDN polyfills have unreliable global exposure, so we define it here. */
+  function ensureBuffer() {
+    if (typeof window.Buffer === 'function' && typeof window.Buffer.from === 'function') return;
+    const B = function Buffer() {};
+    B.from = function(arg, enc) {
+      if (arg instanceof Uint8Array || arg instanceof ArrayBuffer) return new Uint8Array(arg);
+      if (Array.isArray(arg)) return new Uint8Array(arg);
+      if (typeof arg === 'number') return new Uint8Array(arg);
+      if (typeof arg === 'string') {
+        if (enc === 'hex') {
+          const b = new Uint8Array(arg.length >> 1);
+          for (let i = 0; i < b.length; i++) b[i] = parseInt(arg.substr(i * 2, 2), 16);
+          return b;
+        }
+        if (enc === 'base64') {
+          const s = atob(arg), b = new Uint8Array(s.length);
+          for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+          return b;
+        }
+        return new TextEncoder().encode(arg);
+      }
+      return new Uint8Array(0);
+    };
+    B.alloc       = (n, fill) => { const b = new Uint8Array(n); if (fill != null) b.fill(fill); return b; };
+    B.allocUnsafe = (n) => new Uint8Array(n);
+    B.isBuffer    = (x) => x instanceof Uint8Array;
+    B.concat      = (list, len) => {
+      const total = len ?? list.reduce((a, b) => a + b.length, 0);
+      const out = new Uint8Array(total); let off = 0;
+      for (const b of list) { out.set(b, off); off += b.length; }
+      return out;
+    };
+    B.byteLength  = (s) => new TextEncoder().encode(s).length;
+    B.compare     = (a, b) => {
+      for (let i = 0; i < Math.min(a.length, b.length); i++) {
+        if (a[i] < b[i]) return -1; if (a[i] > b[i]) return 1;
+      }
+      return a.length - b.length;
+    };
+    window.Buffer = B;
+  }
+
   function loadSolanaWeb3() {
     if (window.solanaWeb3) return Promise.resolve(window.solanaWeb3);
     if (_lbWeb3Promise) return _lbWeb3Promise;
-    function injectScript(src) {
-      return new Promise((res, rej) => {
-        if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
-        const s = document.createElement('script'); s.src = src; s.async = true;
-        s.onload = res; s.onerror = () => rej(new Error('Failed to load ' + src));
-        document.head.appendChild(s);
-      });
-    }
-    /* Load the browser Buffer polyfill first — @solana/web3.js v1 reaches for the
-       global Buffer in several code paths that the bundled copy doesn't always cover. */
-    _lbWeb3Promise = injectScript('https://unpkg.com/buffer@6.0.3/index.js')
-      .then(() => {
-        if (!window.Buffer && window.buffer) window.Buffer = window.buffer.Buffer;
-        return injectScript(LB_WEB3_SRC);
-      })
-      .then(() => {
-        if (!window.solanaWeb3) throw new Error('web3 missing after load');
-        return window.solanaWeb3;
-      })
-      .catch(err => { _lbWeb3Promise = null; throw err; });
+    ensureBuffer();
+    _lbWeb3Promise = new Promise((res, rej) => {
+      if (document.querySelector(`script[src="${LB_WEB3_SRC}"]`)) {
+        window.solanaWeb3 ? res(window.solanaWeb3) : rej(new Error('web3 missing'));
+        return;
+      }
+      const s = document.createElement('script'); s.src = LB_WEB3_SRC; s.async = true;
+      s.onload  = () => window.solanaWeb3 ? res(window.solanaWeb3) : rej(new Error('web3 missing'));
+      s.onerror = () => { _lbWeb3Promise = null; rej(new Error('web3 load failed')); };
+      document.head.appendChild(s);
+    });
     return _lbWeb3Promise;
   }
 
