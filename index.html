@@ -4385,8 +4385,10 @@ function openEmail() {
         const memo = (memoIx && typeof memoIx.parsed === 'string') ? memoIx.parsed
                    : (memoIx && typeof memoIx.parsed?.info === 'string') ? memoIx.parsed.info
                    : null;
-        if (!memo || !memo.startsWith(LB_TAG)) continue;
-        let data; try { data = JSON.parse(memo.slice(LB_TAG.length)); } catch { continue; }
+        /* Memo program prepends "[byteLen] " — strip it before matching our tag */
+        const cleanMemo = memo.replace(/^\[\d+\]\s*/, '');
+        if (!cleanMemo.startsWith(LB_TAG)) continue;
+        let data; try { data = JSON.parse(cleanMemo.slice(LB_TAG.length)); } catch { continue; }
         const keys = tx.transaction.message.accountKeys || [];
         const signer = (keys.find(k => k.signer) || keys[0])?.pubkey?.toString();
         if (!signer) continue;
